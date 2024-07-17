@@ -87,15 +87,15 @@ class CreateRecordModel(BaseModel):
 
 
 class RecordResponse(BaseModel):
-    id: int
+    record_id: int
     record_name: str
     website: str
     username: str
     password: str
     notes: str
-    user_id: int
+    user_id: str
 
-    tags: List[str]
+    tags: List[TagModel]
 
     class Config:
         from_attributes = True

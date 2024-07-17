@@ -64,7 +64,7 @@ class Tag(Base):
     name = Column(String(50), unique=True, nullable=False)
 
 
-class RecordTag(Base):  # связующая таблица между тегами и записями
+class RecordTag(Base):
     __tablename__ = "records_tags"
 
     record_id = Column(Integer, ForeignKey("records.record_id"), primary_key=True)

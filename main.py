@@ -12,7 +12,7 @@ import hmac
 
 from cor_pass.routes import auth
 from cor_pass.database.db import get_db
-from cor_pass.routes import auth, records
+from cor_pass.routes import auth, records, tags
 from cor_pass.repository import users as repo_users
 from cor_pass.config.config import settings
 from cor_pass.services.logger import logger
@@ -151,7 +151,8 @@ async def startup():
 
 
 app.include_router(auth.router, prefix="/api")
-# app.include_router(records.router, prefix="/api")
+app.include_router(records.router, prefix="/api")
+app.include_router(tags.router, prefix="/api")
 
 
 if __name__ == "__main__":
