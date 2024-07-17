@@ -151,7 +151,7 @@ async def startup():
 
 
 app.include_router(auth.router, prefix="/api")
-app.include_router(records.router, prefix="/api")
+# app.include_router(records.router, prefix="/api")
 
 
 if __name__ == "__main__":

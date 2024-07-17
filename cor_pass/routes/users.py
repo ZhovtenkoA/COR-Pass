@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from cor_pass.database.db import get_db
 from cor_pass.services.auth import auth_service
 from cor_pass.database.models import User, Role
+from cor_pass.services.access import user_access
 from cor_pass.schemas import UserDb
 from cor_pass.repository import users
 from pydantic import EmailStr
@@ -34,3 +35,33 @@ async def get_all_users(
     """
     list_users = await users.get_users(skip, limit, db)
     return list_users
+
+@router.patch("/asign_role/{role}", dependencies=[Depends(user_access)])
+async def assign_role(email: EmailStr, role: Role, db: Session = Depends(get_db)):
+    """
+    **Assign a role to a user by email.**
+
+    This route allows to assign the selected role to a user by their email.
+
+    Level of Access:
+
+    - Administrator
+
+    :param email: EmailStr: Email of the user to whom you want to assign the role.
+
+    :param role: Role: The selected role for the assignment (Administrator, Moderator or User).
+
+    :param db: Session: Database Session.
+
+    :return: Message about successful role change.
+
+    :rtype: dict
+    """
+    user = await users.get_user_by_email(email, db)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    if role == user.role:
+        return {"message": "The role has already been assigned to this user"}
+    else:
+        await users.make_user_role(email, role, db)
+        return {"message": f"{email} {role.value}"}

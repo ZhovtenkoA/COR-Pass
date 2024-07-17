@@ -6,12 +6,12 @@ from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from datetime import timedelta, datetime, timezone
 from sqlalchemy.orm import Session
+from urllib.parse import urlparse
 
 from cor_pass.database.db import get_db
 from cor_pass.repository import users as repository_users
 from cor_pass.config.config import settings
 from cor_pass.services.logger import logger
-from cor_pass.schemas import UserDb, UserModel, TokenData
 
 
 class Auth:
@@ -139,35 +139,39 @@ class Auth:
         :param db: Session: Get the database session
         :return: An object of type user
         """
-
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
         try:
+
             payload = jwt.decode(token, key=self.SECRET_KEY, algorithms=self.ALGORITHM)
-            print(payload)
+
             if payload["scp"] == "access_token":
                 id = payload["oid"]
                 if id is None:
                     raise credentials_exception
             else:
                 raise credentials_exception
-        except JWTError:
+        except JWTError as e:
             raise credentials_exception
-        user = await db.query(UserDb).filter(UserDb.id == id).first()
+
+        user = await repository_users.get_user_by_uuid(id, db)
         if user is None:
             raise credentials_exception
         return user
     
 
-    async def get_current_active_user(current_user: UserDb = Depends(get_current_user)):
-        if not current_user.is_active:
-            raise HTTPException(status_code=400, detail="Inactive user")
-        return current_user
-
-
+    # Функция для проверки допустимости редирект URL
+    # def is_valid_redirect_url(self, redirectUrl):
+    #     allowed_urls = settings.allowed_redirect_urls
+    #     parsed_url = urlparse(redirectUrl)
+    #     if parsed_url.scheme not in ["http", "https"]:
+    #         return False
+    #     if f"{parsed_url.scheme}://{parsed_url.netloc}" not in allowed_urls:
+    #         return False
+    #     return True
 
 
 auth_service = Auth()
