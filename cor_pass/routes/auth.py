@@ -33,18 +33,10 @@ from cor_pass.config.config import settings
 from cor_pass.services.logger import logger
 
 
-
-
-
-
-
-
-
 router = APIRouter(prefix="/auth", tags=["Authorization"])
 security = HTTPBearer()
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
-
 
 
 @router.post(

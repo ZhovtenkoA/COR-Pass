@@ -118,7 +118,6 @@ async def make_user_role(email: str, role: Role, db: Session) -> None:
         raise e
 
 
-
 async def write_verification_code(
     email: str, db: Session, verification_code: int
 ) -> None:

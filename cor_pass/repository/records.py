@@ -9,17 +9,17 @@ from cor_pass.services.cipher import encrypt_data, decrypt_data
 import os
 
 
-
-async def create_record(body: CreateRecordModel, db: Session , user: User) -> Record:
-    # user = db.query(User).filter(User.id == uuid).first()
+async def create_record(body: CreateRecordModel, db: Session, user: User) -> Record:
     if not user:
         raise Exception("User not found")
-    record = Record(record_name=body.record_name, 
-                   user_id=user.id, 
-                   website = body.website, 
-                   username = body.username,
-                   password = encrypt_data(data=body.password, key=user.unique_cipher_key),
-                   notes = body.notes)
+    record = Record(
+        record_name=body.record_name,
+        user_id=user.id,
+        website=body.website,
+        username=body.username,
+        password=encrypt_data(data=body.password, key=user.unique_cipher_key),
+        notes=body.notes,
+    )
     if body.tag_names:
         for tag_name in body.tag_names:
             tag = db.query(Tag).filter_by(name=tag_name).first()
@@ -37,26 +37,26 @@ async def get_record_by_id(user: User, db: Session, record_id: int):
 
     record = (
         db.query(Record)
-        .join(User, Record.user_id == User.id) 
-        .filter(
-            and_(
-                Record.record_id == record_id,
-                User.id == user.id
-            )
-        )
+        .join(User, Record.user_id == User.id)
+        .filter(and_(Record.record_id == record_id, User.id == user.id))
         .first()
     )
-    record.password = decrypt_data(encrypted_data=record.password, key=user.unique_cipher_key)
+    record.password = decrypt_data(
+        encrypted_data=record.password, key=user.unique_cipher_key
+    )
     return record
 
 
 async def get_all_user_records(db: Session, user_id: str, skip: int, limit: int):
-    records = db.query(Record).filter_by(user_id=user_id).offset(skip).limit(limit).all()
+    records = (
+        db.query(Record).filter_by(user_id=user_id).offset(skip).limit(limit).all()
+    )
     return records
 
 
-
-async def update_record(record_id: int, body: CreateRecordModel, user: User, db: Session):
+async def update_record(
+    record_id: int, body: CreateRecordModel, user: User, db: Session
+):
     record = (
         db.query(Record)
         .join(User, Record.user_id == User.id)
@@ -69,15 +69,11 @@ async def update_record(record_id: int, body: CreateRecordModel, user: User, db:
         record.username = body.username
         record.password = encrypt_data(data=body.password, key=user.unique_cipher_key)
         record.notes = body.notes
-
-        # Создаем копию списка тегов
         tags_copy = list(record.tags)
 
-        # Удаляем связи с тегами
         for tag in tags_copy:
             record.tags.remove(tag)
 
-        # Добавляем новые связи с тегами
         if body.tag_names:
             for tag_name in body.tag_names:
                 tag = db.query(Tag).filter_by(name=tag_name).first()

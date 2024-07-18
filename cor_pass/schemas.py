@@ -4,7 +4,7 @@ from datetime import datetime
 from cor_pass.database.models import Role
 
 
-#AUTH MODELS
+# AUTH MODELS
 
 
 class UserModel(BaseModel):
@@ -43,7 +43,6 @@ class EmailSchema(BaseModel):
     email: EmailStr
 
 
-
 class VerificationModel(BaseModel):
     email: EmailStr
     verification_code: int
@@ -51,15 +50,10 @@ class VerificationModel(BaseModel):
 
 class ChangePasswordModel(BaseModel):
     email: str
-    password: str = Field(min_length=4, max_length=20) 
+    password: str = Field(min_length=4, max_length=20)
 
 
-
-
-
-#PASS-MANAGER MODELS
-
-
+# PASS-MANAGER MODELS
 
 
 class TagModel(BaseModel):
@@ -72,9 +66,6 @@ class TagResponse(TagModel):
 
     class Config:
         from_attributes = True
-
-
-
 
 
 class CreateRecordModel(BaseModel):
@@ -103,11 +94,14 @@ class RecordResponse(BaseModel):
         from_attributes = True
 
 
+# PASS-GENERATOR MODELS
 
-
-
-
-
+class PasswordGeneratorSettings(BaseModel):
+    length: int = Field(12, ge=8, le=128)
+    include_uppercase: bool = True
+    include_lowercase: bool = True
+    include_digits: bool = True
+    include_special: bool = True
 
 # class RecordFieldValueModel(BaseModel):
 #     string_value: Optional[str] = None
@@ -122,7 +116,6 @@ class RecordResponse(BaseModel):
 
 #     class Config:
 #         from_attributes = True
-
 
 
 # class TagModel(BaseModel):
@@ -163,4 +156,3 @@ class RecordResponse(BaseModel):
 # class ResponseRecord(BaseModel):
 #     record: RecordModel
 #     detail: str = "Record successfully created"
-

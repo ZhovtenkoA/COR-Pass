@@ -161,7 +161,6 @@ class Auth:
         if user is None:
             raise credentials_exception
         return user
-    
 
     # Функция для проверки допустимости редирект URL
     # def is_valid_redirect_url(self, redirectUrl):

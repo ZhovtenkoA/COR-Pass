@@ -12,9 +12,7 @@ from pydantic import EmailStr
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.get(
-    "/get_all", response_model=list[UserDb]
-)
+@router.get("/get_all", response_model=list[UserDb])
 async def get_all_users(
     skip: int = 0,
     limit: int = 10,
@@ -35,6 +33,7 @@ async def get_all_users(
     """
     list_users = await users.get_users(skip, limit, db)
     return list_users
+
 
 @router.patch("/asign_role/{role}", dependencies=[Depends(user_access)])
 async def assign_role(email: EmailStr, role: Role, db: Session = Depends(get_db)):

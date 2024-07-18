@@ -15,12 +15,16 @@ from cor_pass.repository import users as repository_users
 router = APIRouter(prefix="/records", tags=["Records"])
 encryption_key = settings.encryption_key
 
-@router.get("/", response_model=List[RecordResponse], 
-            dependencies=[Depends(user_access)]
-            )
-async def read_records(skip: int = 0, limit: int = 50, 
-                       user: User = Depends(auth_service.get_current_user),
-                       db: Session = Depends(get_db)):
+
+@router.get(
+    "/", response_model=List[RecordResponse], dependencies=[Depends(user_access)]
+)
+async def read_records(
+    skip: int = 0,
+    limit: int = 50,
+    user: User = Depends(auth_service.get_current_user),
+    db: Session = Depends(get_db),
+):
     """
     Get a list of records.
 
@@ -41,15 +45,14 @@ async def read_records(skip: int = 0, limit: int = 50,
     return records
 
 
-
-
-
-@router.get("/{record_id}", response_model=RecordResponse,
-            dependencies=[Depends(user_access)])
-async def read_record(record_id: int,
-                      user: User = Depends(auth_service.get_current_user),
-                      db: Session = Depends(get_db)
-                      ):
+@router.get(
+    "/{record_id}", response_model=RecordResponse, dependencies=[Depends(user_access)]
+)
+async def read_record(
+    record_id: int,
+    user: User = Depends(auth_service.get_current_user),
+    db: Session = Depends(get_db),
+):
     """
     Get a specific record by ID.
 
@@ -69,17 +72,17 @@ async def read_record(record_id: int,
     return record
 
 
-
-
-
-
-@router.post("/", response_model=RecordResponse, 
-             status_code=status.HTTP_201_CREATED,
-             dependencies=[Depends(user_access)])
-async def create_record(body: CreateRecordModel, 
-                        user: User = Depends(auth_service.get_current_user),
-                        db: Session = Depends(get_db)
-                        ):
+@router.post(
+    "/",
+    response_model=RecordResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(user_access)],
+)
+async def create_record(
+    body: CreateRecordModel,
+    user: User = Depends(auth_service.get_current_user),
+    db: Session = Depends(get_db),
+):
     """
     Create a new record.
 
@@ -94,16 +97,15 @@ async def create_record(body: CreateRecordModel,
     return record
 
 
-
-
-
-
-
-@router.put("/{record_id}", response_model=RecordResponse, dependencies=[Depends(user_access)])
-async def update_record(record_id: int, body: CreateRecordModel, 
-                        db: Session = Depends(get_db), 
-                        user: User = Depends(auth_service.get_current_user)
-                        ):
+@router.put(
+    "/{record_id}", response_model=RecordResponse, dependencies=[Depends(user_access)]
+)
+async def update_record(
+    record_id: int,
+    body: CreateRecordModel,
+    db: Session = Depends(get_db),
+    user: User = Depends(auth_service.get_current_user),
+):
     """
     Update an existing record.
 
@@ -125,17 +127,12 @@ async def update_record(record_id: int, body: CreateRecordModel,
     return record
 
 
-
-
-
-
-
-
 @router.delete("/{record_id}", response_model=RecordResponse)
-async def remove_record(record_id: int, 
-                        db: Session = Depends(get_db), 
-                        user: User = Depends(auth_service.get_current_user)
-                        ):
+async def remove_record(
+    record_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(auth_service.get_current_user),
+):
     """
     Remove a record.
 

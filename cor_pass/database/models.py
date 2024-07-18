@@ -1,12 +1,23 @@
 import enum
 import uuid
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Text, Date, Float, func, Boolean, LargeBinary
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    ForeignKey,
+    Enum,
+    Text,
+    Date,
+    Float,
+    func,
+    Boolean,
+    LargeBinary,
+)
 from sqlalchemy.orm import declarative_base, relationship, Mapped
 from sqlalchemy.sql.sqltypes import DateTime
 from cor_pass.database.db import engine
 
 Base = declarative_base()
-
 
 
 class Role(enum.Enum):
@@ -38,8 +49,6 @@ class Verification(Base):
     email_confirmation = Column(Boolean, default=False)
 
 
-
-
 class Record(Base):
     __tablename__ = "records"
 
@@ -50,12 +59,13 @@ class Record(Base):
     username = Column(String(250), nullable=True)
     password = Column(String(250), nullable=True)
     created_at = Column(DateTime, nullable=False, default=func.now())
-    edited_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+    edited_at = Column(
+        DateTime, nullable=False, default=func.now(), onupdate=func.now()
+    )
     notes = Column(Text, nullable=True)
 
-    user = relationship('User', back_populates='user_records')
+    user = relationship("User", back_populates="user_records")
     tags = relationship("Tag", secondary="records_tags")
-
 
 
 class Tag(Base):
@@ -127,7 +137,6 @@ class RecordTag(Base):
 
 #     record = relationship("Record", back_populates="fields")
 #     field = relationship("RecordField", back_populates="values")
-
 
 
 Base.metadata.create_all(bind=engine)
