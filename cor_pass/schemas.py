@@ -92,6 +92,8 @@ class RecordResponse(BaseModel):
     website: str
     username: str
     password: str
+    created_at: datetime
+    edited_at: datetime
     notes: str
     user_id: str
 

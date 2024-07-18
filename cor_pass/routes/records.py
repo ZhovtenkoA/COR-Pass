@@ -90,7 +90,7 @@ async def create_record(body: CreateRecordModel,
     :return: The created ResponseRecord object representing the new record.
     :rtype: ResponseRecord
     """
-    record = await repository_record.create_record(body, db, user.id)
+    record = await repository_record.create_record(body, db, user)
     return record
 
 

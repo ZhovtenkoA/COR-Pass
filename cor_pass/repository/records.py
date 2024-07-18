@@ -5,20 +5,20 @@ from sqlalchemy.orm import Session
 from cor_pass.database.models import User, Record, Tag
 from cor_pass.schemas import CreateRecordModel
 from cor_pass.config.config import settings
-
+from cor_pass.services.cipher import encrypt_data, decrypt_data
 import os
 
 
 
-async def create_record(body: CreateRecordModel, db: Session , uuid: str) -> Record:
-    user = db.query(User).filter(User.id == uuid).first()
+async def create_record(body: CreateRecordModel, db: Session , user: User) -> Record:
+    # user = db.query(User).filter(User.id == uuid).first()
     if not user:
         raise Exception("User not found")
     record = Record(record_name=body.record_name, 
-                   user_id=uuid, 
+                   user_id=user.id, 
                    website = body.website, 
                    username = body.username,
-                   password = body.password,
+                   password = encrypt_data(data=body.password, key=user.unique_cipher_key),
                    notes = body.notes)
     if body.tag_names:
         for tag_name in body.tag_names:
@@ -46,6 +46,7 @@ async def get_record_by_id(user: User, db: Session, record_id: int):
         )
         .first()
     )
+    record.password = decrypt_data(encrypted_data=record.password, key=user.unique_cipher_key)
     return record
 
 
@@ -66,7 +67,7 @@ async def update_record(record_id: int, body: CreateRecordModel, user: User, db:
         record.record_name = body.record_name
         record.website = body.website
         record.username = body.username
-        record.password = body.password
+        record.password = encrypt_data(data=body.password, key=user.unique_cipher_key)
         record.notes = body.notes
 
         # Создаем копию списка тегов

@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     signing_key: bytes = "SIGNING_KEY"
     signing_key_verification: bool = "TRUE"
     reload: bool = "False"
+    aes_key: str = "key"
 
     class Config:
 

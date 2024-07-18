@@ -2,6 +2,7 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 import base64
 import hashlib
+import secrets
 
 
 def encrypt_data(data, key):
@@ -28,3 +29,10 @@ def generate_aes_key(key):
     sha256.update(key.encode())
     aes_key = sha256.digest()[:16]
     return aes_key
+
+
+# Генерация случайного 256-битного AES-ключа
+# aes_key = secrets.token_bytes(32)
+# encoded_key = base64.b64encode(aes_key).decode('utf-8')
+
+# print(encoded_key)

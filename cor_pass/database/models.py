@@ -1,6 +1,6 @@
 import enum
 import uuid
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Text, Date, Float, func, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Text, Date, Float, func, Boolean, LargeBinary
 from sqlalchemy.orm import declarative_base, relationship, Mapped
 from sqlalchemy.sql.sqltypes import DateTime
 from cor_pass.database.db import engine
@@ -25,6 +25,7 @@ class User(Base):
     restore_code = Column(String(250), nullable=True)
     is_active = Column(Boolean, default=True)
     role: Mapped[Enum] = Column("role", Enum(Role), default=Role.admin)
+    unique_cipher_key = Column(LargeBinary, unique=True, nullable=False)
 
     user_records = relationship("Record", back_populates="user")
 
@@ -127,18 +128,6 @@ class RecordTag(Base):
 #     record = relationship("Record", back_populates="fields")
 #     field = relationship("RecordField", back_populates="values")
 
-# class Tag(Base):
-#     __tablename__ = "tags"
 
-#     id = Column(Integer, primary_key=True)
-#     name = Column(String(50), unique=True, nullable=False)
-
-#     records = relationship("Record", secondary="record_tags", back_populates="tags")
-
-# class RecordTag(Base):  # Связывающая таблица между тегами и записями
-#     __tablename__ = "record_tags"
-
-#     record_id = Column(Integer, ForeignKey("record.id"), primary_key=True)
-#     tag_id = Column(Integer, ForeignKey("tags.id"), primary_key=True)
 
 Base.metadata.create_all(bind=engine)

@@ -6,6 +6,8 @@ from cor_pass.schemas import UserModel
 from sqlalchemy import func
 from cor_pass.services.auth import auth_service
 from cor_pass.services.logger import logger
+from cor_pass.services.cipher import generate_aes_key
+from cor_pass.config.config import settings
 
 
 async def get_user_by_email(email: str, db: Session) -> User | None:
@@ -50,6 +52,8 @@ async def create_user(body: UserModel, db: Session) -> User:
     new_user.id = str(uuid.uuid4())
 
     new_user.role = Role.user
+    new_user.unique_cipher_key = generate_aes_key(settings.aes_key)
+    print(new_user.unique_cipher_key)
 
     users_count = db.query(func.count(User.id)).scalar()
 
