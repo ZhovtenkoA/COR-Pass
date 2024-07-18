@@ -1,11 +1,7 @@
-from fastapi import FastAPI
 import string
 import secrets
 from cor_pass.schemas import PasswordGeneratorSettings
 
-
-
-app = FastAPI()
 
 # Список слов для генерации паролей из слов / заменить на открытую базу слов
 WORDS_LIST = ["apple", "banana", "cherry", "date", "fig", "grape", "kiwi", "lemon", "mango", "nectarine", "orange", "papaya"]
