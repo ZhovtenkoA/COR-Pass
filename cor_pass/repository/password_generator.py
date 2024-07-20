@@ -1,6 +1,6 @@
 import string
 import secrets
-from cor_pass.schemas import PasswordGeneratorSettings
+from cor_pass.schemas import PasswordGeneratorSettings, WordPasswordGeneratorSettings
 
 
 # Список слов для генерации паролей из слов / заменить на открытую базу слов
@@ -25,5 +25,11 @@ def generate_password(settings: PasswordGeneratorSettings) -> str:
 
 
 
-def generate_word_password(num_words: int = 4) -> str:
-    return '-'.join(secrets.choice(WORDS_LIST) for _ in range(num_words))
+def generate_word_password(settings: WordPasswordGeneratorSettings) -> str:
+    if settings.separator_hyphen:
+        separator = "-"
+    elif settings.separator_underscore:
+        separator = "_"
+    else:
+        separator = ""
+    return separator.join(secrets.choice(WORDS_LIST) for _ in range(settings.length))
