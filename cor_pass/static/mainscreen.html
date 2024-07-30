@@ -1,18 +1,297 @@
+
+
+
+
+<!-- 
+Можно сделать по такому принципу, как было с редиректом - после того как мы достали токен на странице login.html или mainscreen.html, мы его добавляем в квери параметр для последующих переходах на другие страницы -->
+<!-- </button>
+<h3 data-translate="registration">Registration</h3>
+<button onclick="window.location.href='/static/signup.html' -> тут новая страница 
++ '?access_token=' + access_token;" -> а тут добавляем квери параметр со старой страницы 
+class="registration-button" data-translate="registration-button">Register</button>
+<br><button onclick="window.location.href='/static/forgot-password.html' + '?access_token=' + access_token;" class="registration-button"><span data-translate="forgot-password-button">Forgot password?</span></a><br> -->
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Пустая страница</title>
-<style>
-    body {
-        background-color: white;
-        margin: 0;
-        padding: 0;
-    }
-</style>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="/android-icon-192x192.png">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Records</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        
+        .panel {
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh; /* Максимальная высота панели 90% высоты окна */
+            background-color: #fff;
+            padding: 10px; /* Уменьшение внутреннего отступа */
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow-y: auto; /* Добавление вертикальной прокрутки */
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        
+        .form-container {
+            margin-bottom: 20px;
+        }
+        
+        .input-wrapper {
+            margin-bottom: 10px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        
+        input[type="submit"], .fetch-button {
+            width: 100%;
+            background-color: #007BFF;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        input[type="submit"]:hover, .fetch-button:hover {
+            background-color: #0056b3;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* Добавляем фиксированное расположение колонок */
+            margin-top: 20px;
+            font-size: 10px; /* Уменьшение размера шрифта */
+        }
+        
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+            word-wrap: break-word; /* Перенос длинных строк */
+            white-space: pre-wrap; /* Обеспечение переноса строк */
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+
+        th:nth-child(1), td:nth-child(1) { width: 15%; }
+        th:nth-child(2), td:nth-child(2) { width: 15%; }
+        th:nth-child(3), td:nth-child(3) { width: 15%; }
+        th:nth-child(4), td:nth-child(4) { width: 15%; }
+        th:nth-child(5), td:nth-child(5) { width: 15%; }
+        th:nth-child(6), td:nth-child(6) { width: 15%; }
+        th:nth-child(7), td:nth-child(7) { width: 10%; }
+    </style>
 </head>
 <body>
+    <div class="panel">
+        <h1>User Records</h1>
+        <div class="form-container">
+            <form id="createRecordForm">
+                <div class="input-wrapper">
+                    <label for="record_name">Record Name</label>
+                    <input type="text" name="record_name" placeholder="Record Name" required>
+                </div>
+                <div class="input-wrapper">
+                    <label for="website">Website</label>
+                    <input type="text" name="website" placeholder="Website" required>
+                </div>
+                <div class="input-wrapper">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" placeholder="Username" required>
+                </div>
+                <div class="input-wrapper">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" placeholder="Password" required>
+                </div>
+                <div class="input-wrapper">
+                    <label for="notes">Notes</label>
+                    <input type="text" name="notes" placeholder="Notes">
+                </div>
+                <input type="submit" value="Create New Record" class="registration-button">
+            </form>
+            <button id="fetchRecordsButton" class="fetch-button">Get Records</button>
+        </div>
+        <div class="table-container">
+            <table id="recordsTable">
+                <thead>
+                    <tr>
+                        <th>Record Name</th>
+                        <th>Website</th>
+                        <th>Username</th>
+                       
+                        <th>Created At</th>
+                        <th>Edited At</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Здесь будут отображаться данные пользователей -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 
+    <script>
+         async function fetchRecords(token) {
+            console.log('Starting fetchRecords function');
+
+            const urlParams = new URLSearchParams(window.location.search);
+            let Item=urlParams.get('access_token')
+            localStorage.setItem('access_token', Item);
+            console.log(localStorage.getItem(Item));
+            console.log(Item);
+            
+
+            try {
+                console.log('Making GET request to /api/records');
+
+                const response = await fetch('/api/records', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' +  localStorage.getItem('access_token')// Используем токен, переданный из функции логина
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+
+                const records = await response.json();
+                console.log('Records fetched:', records);
+                populateTable(records);
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+            }
+        }
+
+
+        function populateTable(records) {
+            console.log('Populating table with records:', records);
+            const tableBody = document.getElementById('recordsTable').querySelector('tbody');
+            tableBody.innerHTML = '';
+
+            const urlParams = new URLSearchParams(window.location.search);
+            let Item=urlParams.get('access_token')
+            localStorage.setItem('access_token', Item);
+            console.log(localStorage.getItem(Item));
+            console.log(Item);
+ 
+
+            records.forEach(record => {
+                console.log('Adding record to table:', record);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.record_name}</td>
+                    <td>${record.website}</td>
+                    <td>${record.username}</td>
+                    
+                    <td>${new Date(record.created_at).toLocaleString()}</td>
+                    <td>${new Date(record.edited_at).toLocaleString()}</td>
+                    <td>${record.notes}</td>`;
+                tableBody.appendChild(row);
+            });
+        }
+
+        document.getElementById('createRecordForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            console.log('Form submitted');
+
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+            console.log('Form data:', data);
+
+
+            const urlParams = new URLSearchParams(window.location.search);
+            let Item=urlParams.get('access_token')
+            localStorage.setItem('access_token', Item);
+            console.log(localStorage.getItem(Item));
+            console.log(Item);
+
+
+            try {
+                console.log('Making POST request to /api/records with data:', data);
+                const response = await fetch('/api/records', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+
+                const newRecord = await response.json();
+                console.log('New record created:', newRecord);
+                fetchRecords();
+                event.target.reset(); // Reset the form
+                console.log('Form reset');
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+            }
+        });
+
+        document.getElementById('fetchRecordsButton').addEventListener('click', fetchRecords);
+
+        // Initial fetch to populate the table
+        fetchRecords();
+    </script>
 </body>
 </html>
