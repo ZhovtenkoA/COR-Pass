@@ -13,7 +13,7 @@ import hmac
 
 from cor_pass.routes import auth
 from cor_pass.database.db import get_db
-from cor_pass.routes import auth, records, tags, password_generator
+from cor_pass.routes import auth, records, tags, password_generator, users
 from cor_pass.repository import users as repo_users
 from cor_pass.config.config import settings
 from cor_pass.services.logger import logger
@@ -24,8 +24,8 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="cor_pass/static"), name="static")
 
 origins = [ "http://192.168.153.203:8000"
-    # "http://localhost:3000", 
-    # "http://192.168.153.21:3000"
+    "http://localhost:3000", 
+    "http://192.168.153.21:3000"
     ]
 
 # Middleware для CORS
@@ -158,6 +158,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(records.router, prefix="/api")
 app.include_router(tags.router, prefix="/api")
 app.include_router(password_generator.router, prefix="/api")
+app.include_router(users.router, prefix="/api")
 
 
 

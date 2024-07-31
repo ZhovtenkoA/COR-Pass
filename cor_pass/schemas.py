@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
 from datetime import datetime
-from cor_pass.database.models import Role
+from cor_pass.database.models import Status
 
 
 # AUTH MODELS
@@ -15,7 +15,7 @@ class UserModel(BaseModel):
 class UserDb(BaseModel):
     id: str
     email: str
-    role: Role
+    account_status: Status
 
     class Config:
         from_attributes = True

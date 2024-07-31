@@ -20,9 +20,9 @@ from cor_pass.database.db import engine
 Base = declarative_base()
 
 
-class Role(enum.Enum):
-    admin: str = "admin"
-    user: str = "user"
+class Status(enum.Enum):
+    premium: str = "premium"
+    basic: str = "basic"
 
 
 class User(Base):
@@ -35,7 +35,7 @@ class User(Base):
     refresh_token = Column(String(250), nullable=True)
     restore_code = Column(String(250), nullable=True)
     is_active = Column(Boolean, default=True)
-    role: Mapped[Enum] = Column("role", Enum(Role), default=Role.admin)
+    account_status: Mapped[Enum] = Column("status", Enum(Status), default=Status.basic)
     unique_cipher_key = Column(LargeBinary, nullable=False)
 
     user_records = relationship("Record", back_populates="user")
