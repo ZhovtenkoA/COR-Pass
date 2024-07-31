@@ -96,7 +96,7 @@ async def delete_record(user: User, db: Session, record_id: int):
         .first()
     )
     if not record:
-        return False, {"message": "Record not found"}
+        return None
     if record:
         db.delete(record)
         db.commit()

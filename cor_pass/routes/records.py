@@ -109,8 +109,21 @@ async def create_record(
     :return: The created ResponseRecord object representing the new record.
     :rtype: ResponseRecord
     """
-    record = await repository_record.create_record(body, db, user)
-    return record
+    print(user.account_status.value)
+    if user.account_status.value == "basic":
+        records = await repository_record.get_all_user_records(db, user.id, 0, 50)
+        print(len(records))
+        if len(records) < settings.basic_account_records:
+            record = await repository_record.create_record(body, db, user)
+            return record
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED, detail="User is not premium"
+            )
+
+    else:
+        record = await repository_record.create_record(body, db, user)
+        return record
 
 
 

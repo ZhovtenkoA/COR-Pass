@@ -64,7 +64,7 @@ async def assign_status(email: EmailStr, account_status: Status, db: Session = D
 
 
 @router.get("/account_status", dependencies=[Depends(user_access)])
-async def assign_role(email: EmailStr, db: Session = Depends(get_db)):
+async def get_status(email: EmailStr, db: Session = Depends(get_db)):
 
     user = await users.get_user_by_email(email, db)
     if not user:
