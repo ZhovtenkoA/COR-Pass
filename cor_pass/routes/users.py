@@ -36,7 +36,9 @@ async def get_all_users(
 
 
 @router.patch("/asign_status/{account_status}", dependencies=[Depends(user_access)])
-async def assign_status(email: EmailStr, account_status: Status, db: Session = Depends(get_db)):
+async def assign_status(
+    email: EmailStr, account_status: Status, db: Session = Depends(get_db)
+):
     """
     **Assign a account_status to a user by email.**
 
@@ -60,7 +62,6 @@ async def assign_status(email: EmailStr, account_status: Status, db: Session = D
     else:
         await users.make_user_status(email, account_status, db)
         return {"message": f"{email} - {account_status.value}"}
-
 
 
 @router.get("/account_status", dependencies=[Depends(user_access)])

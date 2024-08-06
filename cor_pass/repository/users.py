@@ -3,10 +3,9 @@ import uuid
 
 from cor_pass.database.models import User, Status, Verification
 from cor_pass.schemas import UserModel
-from sqlalchemy import func
 from cor_pass.services.auth import auth_service
 from cor_pass.services.logger import logger
-from cor_pass.services.cipher import generate_aes_key
+from cor_pass.services.cipher import generate_aes_key, encrypt_user_key
 from cor_pass.config.config import settings
 
 
@@ -52,7 +51,8 @@ async def create_user(body: UserModel, db: Session) -> User:
     new_user.id = str(uuid.uuid4())
 
     new_user.account_status = Status.basic
-    new_user.unique_cipher_key = generate_aes_key(settings.aes_key)
+    new_user.unique_cipher_key = await generate_aes_key(settings.aes_key)  # ->bytes
+    new_user.unique_cipher_key = await encrypt_user_key(new_user.unique_cipher_key)
 
     try:
         db.add(new_user)
@@ -89,7 +89,8 @@ async def get_users(skip: int, limit: int, db: Session) -> list[User]:
     query = db.query(User).offset(skip).limit(limit).all()
     return query
 
-#переписать
+
+# переписать
 async def make_user_status(email: str, account_status: Status, db: Session) -> None:
     """
     The make_user_status function takes in an email and a status, and then updates the user's status to that new one.
@@ -110,7 +111,7 @@ async def make_user_status(email: str, account_status: Status, db: Session) -> N
     except Exception as e:
         db.rollback()
         raise e
-    
+
 
 async def get_user_status(email: str, db: Session):
 

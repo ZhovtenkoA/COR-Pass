@@ -38,7 +38,6 @@ class LoginResponseModel(BaseModel):
     token_type: str = "bearer"
 
 
-
 class EmailSchema(BaseModel):
     email: EmailStr
 
@@ -96,6 +95,7 @@ class RecordResponse(BaseModel):
 
 # PASS-GENERATOR MODELS
 
+
 class PasswordGeneratorSettings(BaseModel):
     length: int = Field(12, ge=8, le=128)
     include_uppercase: bool = True
@@ -103,11 +103,13 @@ class PasswordGeneratorSettings(BaseModel):
     include_digits: bool = True
     include_special: bool = True
 
+
 class WordPasswordGeneratorSettings(BaseModel):
     length: int = Field(4, ge=1, le=7)
     separator_hyphen: bool = True
     separator_underscore: bool = True
     include_uppercase: bool = True
+
 
 # class RecordFieldValueModel(BaseModel):
 #     string_value: Optional[str] = None
