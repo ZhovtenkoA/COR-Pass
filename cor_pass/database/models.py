@@ -29,6 +29,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    cor_id = Column(String(250), unique=True, nullable=True)
     email = Column(String(250), unique=True, nullable=False)
     password = Column(String(250), nullable=False)
     access_token = Column(String(250), nullable=True)

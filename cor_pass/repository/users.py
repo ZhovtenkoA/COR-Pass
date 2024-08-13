@@ -5,8 +5,9 @@ from cor_pass.database.models import User, Status, Verification
 from cor_pass.schemas import UserModel
 from cor_pass.services.auth import auth_service
 from cor_pass.services.logger import logger
-from cor_pass.services.cipher import generate_aes_key, encrypt_user_key
+from cor_pass.services.cipher import generate_aes_key, encrypt_user_key, generate_restore_code
 from cor_pass.config.config import settings
+from cor_pass.services.email import send_email_code_with_qr
 
 
 async def get_user_by_email(email: str, db: Session) -> User | None:
@@ -51,8 +52,12 @@ async def create_user(body: UserModel, db: Session) -> User:
     new_user.id = str(uuid.uuid4())
 
     new_user.account_status = Status.basic
-    new_user.unique_cipher_key = await generate_aes_key(settings.aes_key)  # ->bytes
+    new_user.unique_cipher_key = await generate_aes_key()  # ->bytes
     new_user.unique_cipher_key = await encrypt_user_key(new_user.unique_cipher_key)
+
+    new_user.restore_code = await generate_restore_code()
+    await send_email_code_with_qr(new_user.email, host= None, recovery_code=new_user.restore_code)
+    new_user.restore_code = auth_service.get_password_hash(new_user.restore_code)
 
     try:
         db.add(new_user)
@@ -182,6 +187,17 @@ async def change_user_password(email: str, password: str, db: Session) -> None:
     try:
         db.commit()
         logger.debug("Password has changed")
+    except Exception as e:
+        db.rollback()
+        raise e
+    
+
+
+async def change_user_email(email: str, current_user, db: Session) -> None:
+    current_user.email = email
+    try:
+        db.commit()
+        logger.debug("Email has changed")
     except Exception as e:
         db.rollback()
         raise e

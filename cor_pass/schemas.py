@@ -52,6 +52,10 @@ class ChangePasswordModel(BaseModel):
     password: str = Field(min_length=4, max_length=20)
 
 
+class RestoreCodeModel(BaseModel):
+    email: EmailStr
+    restore_code: str
+
 # PASS-MANAGER MODELS
 
 
