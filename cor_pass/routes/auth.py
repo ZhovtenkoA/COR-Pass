@@ -24,7 +24,7 @@ from cor_pass.schemas import (
     VerificationModel,
     ChangePasswordModel,
     LoginResponseModel,
-    RestoreCodeModel
+    RecoveryCodeModel
 )
 from cor_pass.database.models import User
 from cor_pass.repository import users as repository_users
@@ -317,14 +317,14 @@ async def change_email(
 """
 
 @router.post("/restore_account")
-async def restore_account(body: RestoreCodeModel, db: Session = Depends(get_db)):
+async def restore_account(body: RecoveryCodeModel, db: Session = Depends(get_db)):
     user = await repository_users.get_user_by_email(body.email, db)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found / invalid email",
         )
-    verify_restoration = auth_service.verify_password(body.restore_code, user.restore_code)
+    verify_restoration = auth_service.verify_password(body.recovery_code, user.recovery_code)
     if not verify_restoration:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid recovery code"

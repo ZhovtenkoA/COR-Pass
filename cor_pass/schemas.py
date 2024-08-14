@@ -52,9 +52,20 @@ class ChangePasswordModel(BaseModel):
     password: str = Field(min_length=4, max_length=20)
 
 
-class RestoreCodeModel(BaseModel):
+class RecoveryCodeModel(BaseModel):
     email: EmailStr
-    restore_code: str
+    recovery_code: str
+
+
+class PasswordStorageSettings(BaseModel):
+    local_password_storage: bool
+    cloud_password_storage: bool
+
+class MedicalStorageSettings(BaseModel):
+    local_medical_storage: bool
+    cloud_medical_storage: bool
+
+
 
 # PASS-MANAGER MODELS
 
