@@ -51,6 +51,8 @@ async def create_user(body: UserModel, db: Session) -> User:
     new_user = User(**body.model_dump())
     new_user.id = str(uuid.uuid4())
 
+    user_settings = UserSettings(user_id = new_user.id)
+
     new_user.account_status = Status.basic
     new_user.unique_cipher_key = await generate_aes_key()  # ->bytes
     new_user.unique_cipher_key = await encrypt_user_key(new_user.unique_cipher_key)
@@ -61,8 +63,10 @@ async def create_user(body: UserModel, db: Session) -> User:
 
     try:
         db.add(new_user)
+        db.add(user_settings)
         db.commit()
         db.refresh(new_user)
+        db.refresh(user_settings)
         return new_user
     except Exception as e:
         db.rollback()
