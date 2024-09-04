@@ -6,6 +6,8 @@ from fastapi import (
     Security,
     BackgroundTasks,
     Request,
+    File,
+    Form,
 )
 from fastapi.security import (
     OAuth2PasswordRequestForm,
@@ -24,7 +26,7 @@ from cor_pass.schemas import (
     VerificationModel,
     ChangePasswordModel,
     LoginResponseModel,
-    RecoveryCodeModel
+    RecoveryCodeModel,
 )
 from cor_pass.database.models import User
 from cor_pass.repository import users as repository_users
@@ -32,10 +34,11 @@ from cor_pass.services.auth import auth_service
 from cor_pass.services.email import (
     send_email_code,
     send_email_code_forgot_password,
-    send_email_code_with_qr,
 )
+from cor_pass.services.cipher import decrypt_data, decrypt_user_key
 from cor_pass.config.config import settings
 from cor_pass.services.logger import logger
+from fastapi import UploadFile
 
 
 router = APIRouter(prefix="/auth", tags=["Authorization"])
@@ -56,7 +59,7 @@ async def signup(
     db: Session = Depends(get_db),
 ):
     """
-    The signup function creates a new user in the database.
+    The signup function creates a new user in the database.\n
         It takes an email and password as input, hashes the password, and stores it in the database.
         If there is already a user with that email address, it returns an error message.
 
@@ -91,7 +94,7 @@ async def login(
     db: Session = Depends(get_db),
 ):
     """
-    The login function is used to authenticate a user.
+    The login function is used to authenticate a user.\n
 
     :param body: OAuth2PasswordRequestForm: Get the username and password from the request body
     :param db: Session: Get the database session
@@ -134,7 +137,7 @@ async def refresh_token(
     db: Session = Depends(get_db),
 ):
     """
-    The refresh_token function is used to refresh the access token.
+    The refresh_token function is used to refresh the access token.\n
     It takes in a refresh token and returns an access_token, a new refresh_token, and the type of token (bearer).
 
 
@@ -283,16 +286,19 @@ async def change_password(body: ChangePasswordModel, db: Session = Depends(get_d
                 status_code=status.HTTP_406_NOT_ACCEPTABLE,
                 detail="Incorrect password input",
             )
-        
+
+
 """
 Маршрут смены имейла, работает только для авторизированных пользователей
 """
 
+
 @router.patch("/change_email")
 async def change_email(
-                    email: str,
-                    current_user: User = Depends(auth_service.get_current_user),
-                    db: Session = Depends(get_db)):
+    email: str,
+    current_user: User = Depends(auth_service.get_current_user),
+    db: Session = Depends(get_db),
+):
     user = await repository_users.get_user_by_email(current_user.email, db)
     if not user:
         raise HTTPException(
@@ -311,35 +317,69 @@ async def change_email(
             )
 
 
-
-"""
-Маршрут подтверждения почты с введением кода восстановления
-"""
-
-@router.post("/restore_account")
-async def restore_account(body: RecoveryCodeModel, db: Session = Depends(get_db)):
+@router.post("/restore_account_by_text")
+async def restore_account_by_text(
+    body: RecoveryCodeModel, db: Session = Depends(get_db)
+):
+    """
+    **Проверка кода восстановления с помощью текста**\n
+    """
     user = await repository_users.get_user_by_email(body.email, db)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found / invalid email",
         )
-    verify_restoration = auth_service.verify_password(body.recovery_code, user.recovery_code)
-    if not verify_restoration:
+    user.recovery_code = await decrypt_data(
+        encrypted_data=user.recovery_code,
+        key=await decrypt_user_key(user.unique_cipher_key),
+    )
+    if not user.recovery_code == body.recovery_code:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid recovery code"
         )
     confirmation = False
-    if verify_restoration:
+    if user.recovery_code == body.recovery_code:
         confirmation = True
-        logger.debug(f"Your {body.email} is confirmed, restoration code is correct")
+        logger.debug(f"Recovery code is correct")
         return {
-            "message": "Your email is confirmed, restoration code is correct",  # Сообщение для JS о том что код востановления верный 
+            "message": "Recovery code is correct",  # Сообщение для JS о том что код востановления верный
             "confirmation": confirmation,
         }
     else:
-        logger.debug(f"{body.email} - Invalid restoration code")
+        logger.debug(f"{body.email} - Invalid recovery code")
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid restoration code"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid recovery code"
         )
-    
+
+
+@router.post("/restore_account_by_recovery_file")
+async def upload_recovery_file(
+    file: UploadFile = File(...),
+    email: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    """
+    **Загрузка и проверка файла восстановления**\n
+    """
+    user = await repository_users.get_user_by_email(email, db)
+    confirmation = False
+    file_content = await file.read()
+
+    recovery_code = await decrypt_data(
+        encrypted_data=user.recovery_code,
+        key=await decrypt_user_key(user.unique_cipher_key),
+    )
+
+    if file_content == recovery_code.encode():
+        confirmation = True
+        logger.debug(f"Restoration code is correct")
+        return {
+            "message": "Recovery file is correct",  # Сообщение для JS о том что файл востановления верный
+            "confirmation": confirmation,
+        }
+    else:
+        logger.debug(f"{email} - Invalid recovery code")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid recovery code"
+        )

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, status
 from cor_pass.schemas import PasswordGeneratorSettings, WordPasswordGeneratorSettings
 
 
