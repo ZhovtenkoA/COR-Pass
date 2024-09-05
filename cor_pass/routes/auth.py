@@ -47,8 +47,6 @@ SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
 
 
-
-
 @router.post(
     "/signup", response_model=ResponseUser, status_code=status.HTTP_201_CREATED
 )
@@ -116,9 +114,6 @@ async def login(
     }
 
 
-
-
-
 @router.get(
     "/refresh_token",
     response_model=TokenModel,
@@ -158,8 +153,6 @@ async def refresh_token(
     }
 
 
-
-
 @router.post(
     "/send_verification_code"
 )  # Маршрут проверки почты в случае если это новая регистрация
@@ -196,8 +189,6 @@ async def send_verification_code(
     return {"message": "Check your email for verification code."}
 
 
-
-
 @router.post("/confirm_email")
 async def confirm_email(body: VerificationModel, db: Session = Depends(get_db)):
     """
@@ -223,8 +214,6 @@ async def confirm_email(body: VerificationModel, db: Session = Depends(get_db)):
         )
 
 
-
-
 @router.post("/forgot_password")
 async def forgot_password_send_verification_code(
     body: EmailSchema,
@@ -234,7 +223,6 @@ async def forgot_password_send_verification_code(
 ):
     """
     **Отправка кода верификации на почту в случае если забыли пароль (проверка почты)** \n
-
     """
 
     verification_code = randint(100000, 999999)
@@ -257,16 +245,13 @@ async def forgot_password_send_verification_code(
     return {"message": "Check your email for verification code."}
 
 
-
-
-
 @router.patch("/change_password")
 async def change_password(body: ChangePasswordModel, db: Session = Depends(get_db)):
     """
     **Смена пароля** \n
 
     """
-    
+
     user = await repository_users.get_user_by_email(body.email, db)
     if not user:
         raise HTTPException(
@@ -283,9 +268,6 @@ async def change_password(body: ChangePasswordModel, db: Session = Depends(get_d
                 status_code=status.HTTP_406_NOT_ACCEPTABLE,
                 detail="Incorrect password input",
             )
-
-
-
 
 
 @router.patch("/change_email")

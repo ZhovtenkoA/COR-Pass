@@ -12,8 +12,6 @@ from cor_pass.repository import cor_id as repository_cor_id
 router = APIRouter(prefix="/medical/cor_id", tags=["Cor-Id"])
 
 
-
-
 @router.get(
     "/my_core_id",
     response_model=ResponseCorIdModel,
@@ -34,7 +32,6 @@ async def read_cor_id(
             status_code=status.HTTP_404_NOT_FOUND, detail="COR-Id not found"
         )
     return cor_id
-
 
 
 @router.post(
