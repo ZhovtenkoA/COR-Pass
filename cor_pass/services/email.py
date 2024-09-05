@@ -32,7 +32,7 @@ async def send_email_code(
     email: EmailStr, host: str, verification_code
 ):  # registration
     """
-    The send_email function sends an email to the user with a link to confirm their email address.
+    The send_email function sends an email to the user with a link to confirm their email address.\n
         Args:
             email (str): The user's email address.
             host (str): The hostname that will be used in constructing a URL for confirming their account registration.
@@ -64,7 +64,7 @@ async def send_email_code_forgot_password(
     email: EmailStr, host: str, verification_code
 ):  # forgot password
     """
-    The send_email function sends an email to the user with a link to confirm their email address.
+    The send_email function sends an email to the user with a link to confirm their email address.\n
         Args:
             email (str): The user's email address.
             host (str): The hostname that will be used in constructing a URL for confirming their account registration.

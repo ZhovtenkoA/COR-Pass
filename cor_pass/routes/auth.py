@@ -46,9 +46,7 @@ security = HTTPBearer()
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
 
-"""
-Путь для регистрации нового пользователя, будет меняться
-"""
+
 
 
 @router.post(
@@ -59,7 +57,7 @@ async def signup(
     db: Session = Depends(get_db),
 ):
     """
-    The signup function creates a new user in the database.\n
+    **The signup function creates a new user in the database. / Регистрация нового юзера**\n
         It takes an email and password as input, hashes the password, and stores it in the database.
         If there is already a user with that email address, it returns an error message.
 
@@ -79,11 +77,6 @@ async def signup(
     return {"user": new_user, "detail": "User successfully created"}
 
 
-"""
-Путь для логина пользователя
-"""
-
-
 @router.post(
     "/login",
     response_model=LoginResponseModel,
@@ -94,7 +87,7 @@ async def login(
     db: Session = Depends(get_db),
 ):
     """
-    The login function is used to authenticate a user.\n
+    **The login function is used to authenticate a user. / Логин пользователя**\n
 
     :param body: OAuth2PasswordRequestForm: Get the username and password from the request body
     :param db: Session: Get the database session
@@ -123,9 +116,7 @@ async def login(
     }
 
 
-"""
-Путь для обновления рефреш токена, под вопросом
-"""
+
 
 
 @router.get(
@@ -137,7 +128,7 @@ async def refresh_token(
     db: Session = Depends(get_db),
 ):
     """
-    The refresh_token function is used to refresh the access token.\n
+    **The refresh_token function is used to refresh the access token. / Маршрут для рефреш токена, обновление токенов по рефрешу **\n
     It takes in a refresh token and returns an access_token, a new refresh_token, and the type of token (bearer).
 
 
@@ -167,9 +158,6 @@ async def refresh_token(
     }
 
 
-"""
-Маршрут проверки почты в случае если это новая регистрация
-"""
 
 
 @router.post(
@@ -181,6 +169,10 @@ async def send_verification_code(
     request: Request,
     db: Session = Depends(get_db),
 ):
+    """
+    **Отправка кода верификации на почту (проверка почты)** \n
+
+    """
     verification_code = randint(100000, 999999)
 
     exist_user = await repository_users.get_user_by_email(body.email, db)
@@ -204,13 +196,14 @@ async def send_verification_code(
     return {"message": "Check your email for verification code."}
 
 
-"""
-Маршрут подтверждения почты/кода
-"""
 
 
 @router.post("/confirm_email")
 async def confirm_email(body: VerificationModel, db: Session = Depends(get_db)):
+    """
+    **Проверка кода верификации почты** \n
+
+    """
 
     ver_code = await repository_users.verify_verification_code(
         body.email, db, body.verification_code
@@ -230,9 +223,6 @@ async def confirm_email(body: VerificationModel, db: Session = Depends(get_db)):
         )
 
 
-"""
-Маршрут проверки почты в случае если забыли пароль
-"""
 
 
 @router.post("/forgot_password")
@@ -242,6 +232,10 @@ async def forgot_password_send_verification_code(
     request: Request,
     db: Session = Depends(get_db),
 ):
+    """
+    **Отправка кода верификации на почту в случае если забыли пароль (проверка почты)** \n
+
+    """
 
     verification_code = randint(100000, 999999)
     exist_user = await repository_users.get_user_by_email(body.email, db)
@@ -263,13 +257,16 @@ async def forgot_password_send_verification_code(
     return {"message": "Check your email for verification code."}
 
 
-"""
-Маршрут смены пароля
-"""
+
 
 
 @router.patch("/change_password")
 async def change_password(body: ChangePasswordModel, db: Session = Depends(get_db)):
+    """
+    **Смена пароля** \n
+
+    """
+    
     user = await repository_users.get_user_by_email(body.email, db)
     if not user:
         raise HTTPException(
@@ -288,9 +285,7 @@ async def change_password(body: ChangePasswordModel, db: Session = Depends(get_d
             )
 
 
-"""
-Маршрут смены имейла, работает только для авторизированных пользователей
-"""
+
 
 
 @router.patch("/change_email")
@@ -299,6 +294,10 @@ async def change_email(
     current_user: User = Depends(auth_service.get_current_user),
     db: Session = Depends(get_db),
 ):
+    """
+    **Смена имейла авторизированного пользователя** \n
+
+    """
     user = await repository_users.get_user_by_email(current_user.email, db)
     if not user:
         raise HTTPException(

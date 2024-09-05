@@ -12,9 +12,6 @@ from cor_pass.repository import cor_id as repository_cor_id
 router = APIRouter(prefix="/medical/cor_id", tags=["Cor-Id"])
 
 
-"""
-Маршрут просмотра cor-id
-"""
 
 
 @router.get(
@@ -26,6 +23,10 @@ async def read_cor_id(
     user: User = Depends(auth_service.get_current_user),
     db: Session = Depends(get_db),
 ):
+    """
+    **Просмотр своего COR-id** \n
+
+    """
 
     cor_id = await repository_cor_id.get_cor_id(user, db)
     if cor_id is None:
@@ -34,10 +35,6 @@ async def read_cor_id(
         )
     return cor_id
 
-
-"""
-Маршрут создания cor-id
-"""
 
 
 @router.post(
@@ -51,6 +48,10 @@ async def create_cor_id(
     user: User = Depends(auth_service.get_current_user),
     db: Session = Depends(get_db),
 ):
+    """
+    **Создание COR-id** \n
+
+    """
 
     if not user.cor_id:
         cor_id = await repository_cor_id.create_cor_id(body, db, user)

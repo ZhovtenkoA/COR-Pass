@@ -15,10 +15,6 @@ router = APIRouter(prefix="/records", tags=["Records"])
 encryption_key = settings.encryption_key
 
 
-"""
-Маршрут получения всех записей пользователя
-"""
-
 
 @router.get(
     "/all", response_model=List[RecordResponse], dependencies=[Depends(user_access)]
@@ -30,7 +26,7 @@ async def read_records(
     db: Session = Depends(get_db),
 ):
     """
-    Get a list of records.
+    **Get a list of records. / Получение всех записей пользователя** \n
 
     :param skip: The number of records to skip (for pagination). Default is 0.
     :type skip: int
@@ -49,9 +45,6 @@ async def read_records(
     return records
 
 
-"""
-Маршрут получения конкретной записи пользователя
-"""
 
 
 @router.get(
@@ -63,7 +56,7 @@ async def read_record(
     db: Session = Depends(get_db),
 ):
     """
-    Get a specific record by ID.
+    **Get a specific record by ID. / Получение данных одной конкретной записи пользователя** \n 
 
     :param record_id: The ID of the record.
     :type record_id: int
@@ -81,9 +74,6 @@ async def read_record(
     return record
 
 
-"""
-Маршрут создания записи
-"""
 
 
 @router.post(
@@ -98,7 +88,7 @@ async def create_record(
     db: Session = Depends(get_db),
 ):
     """
-    Create a new record.
+    **Create a new record. / Создание записи** \n 
 
     :param body: The request body containing the record data.
     :type body: CreateRecordModel
@@ -139,7 +129,7 @@ async def update_record(
     user: User = Depends(auth_service.get_current_user),
 ):
     """
-    Update an existing record.
+    **Update an existing record. / Обновление данных записи** \n 
 
     :param record_id: The ID of the record to update.
     :type record_id: int
@@ -159,9 +149,6 @@ async def update_record(
     return record
 
 
-"""
-Маршрут удаления записи
-"""
 
 
 @router.delete("/{record_id}", response_model=RecordResponse)
@@ -171,7 +158,7 @@ async def remove_record(
     user: User = Depends(auth_service.get_current_user),
 ):
     """
-    Remove a record.
+    **Remove a record. / Удаление записи** \n 
 
     :param record_id: The ID of the record to remove.
     :type record_id: int
