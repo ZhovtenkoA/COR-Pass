@@ -144,3 +144,23 @@ class CreateCorIdModel(BaseModel):
 
 class ResponseCorIdModel(BaseModel):
     cor_id: str = None
+
+
+
+# OTP MODELS
+
+class CreateOTPRecordModel(BaseModel):
+    record_name: str = Field(max_length=25)
+    username: str = Field(max_length=25)
+    private_key: str = Field(max_length=25)
+
+class OTPRecordResponse(BaseModel):
+    record_id: int
+    record_name: str
+    username: str
+    otp_password: str
+    remaining_time: float
+
+class UpdateOTPRecordModel(BaseModel):
+    record_name: str = Field(max_length=25)
+    username: str = Field(max_length=25)

@@ -50,6 +50,7 @@ class User(Base):
 
     user_records = relationship("Record", back_populates="user")
     user_settings = relationship("UserSettings", back_populates="user")
+    user_otp = relationship("OTP", back_populates="user")
 
 
 class Verification(Base):
@@ -106,5 +107,22 @@ class UserSettings(Base):
 
     user = relationship("User", back_populates="user_settings")
 
+
+class OTP(Base):
+    __tablename__ = "otp_records"
+
+    record_id = Column(Integer, primary_key=True)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
+    record_name = Column(String(250), nullable=False)
+    username = Column(String(250), nullable=True)
+    private_key = Column(String(250), nullable=True)
+    created_at = Column(DateTime, nullable=False, default=func.now())
+    edited_at = Column(
+        DateTime, nullable=False, default=func.now(), onupdate=func.now()
+    )
+
+
+    user = relationship("User", back_populates="user_otp")
+    
 
 Base.metadata.create_all(bind=engine)

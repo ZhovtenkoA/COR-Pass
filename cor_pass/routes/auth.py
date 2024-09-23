@@ -38,6 +38,7 @@ from cor_pass.services.email import (
 from cor_pass.services.cipher import decrypt_data, decrypt_user_key, encrypt_data
 from cor_pass.config.config import settings
 from cor_pass.services.logger import logger
+from cor_pass.services import cor_otp
 from fastapi import UploadFile
 
 
@@ -398,3 +399,6 @@ async def upload_recovery_file(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid recovery code"
         )
+
+
+
