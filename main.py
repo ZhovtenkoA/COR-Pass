@@ -9,7 +9,10 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 import hashlib
 import hmac
-
+from prometheus_client import start_http_server, Summary
+from prometheus_client import Counter, Histogram
+from prometheus_client import generate_latest
+from starlette.responses import Response
 
 from cor_pass.routes import auth
 from cor_pass.database.db import get_db
@@ -27,6 +30,14 @@ origins = [
     "http://192.168.153.203:8000" "http://localhost:3000",
     "http://192.168.153.21:3000",
 ]
+
+@app.get("/metrics")
+async def metrics():
+    return Response(generate_latest(), media_type="text/plain")
+
+# Пример метрик
+REQUEST_COUNT = Counter('app_requests_total', 'Total number of requests')
+REQUEST_LATENCY = Histogram('app_request_latency_seconds', 'Request latency')
 
 # Middleware для CORS
 app.add_middleware(
@@ -70,12 +81,15 @@ def read_config():
 
 @app.get("/", name="Корень")
 def read_root(request: Request):
-    return FileResponse("cor_pass/static/login.html")
+    REQUEST_COUNT.inc()
+    with REQUEST_LATENCY.time():
+        return FileResponse("cor_pass/static/login.html")
     # return "welcome"
 
 
 @app.get("/api/healthchecker")
 def healthchecker(db: Session = Depends(get_db)):
+    REQUEST_COUNT.inc()
     try:
         result = db.execute(text("SELECT 1")).fetchone()
         if result is None:
