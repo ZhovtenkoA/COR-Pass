@@ -41,6 +41,12 @@ from cor_pass.services.logger import logger
 from cor_pass.services import cor_otp
 from fastapi import UploadFile
 
+from collections import defaultdict
+from datetime import datetime, timedelta
+
+auth_attempts = defaultdict(list)
+blocked_ips = {}
+
 
 router = APIRouter(prefix="/auth", tags=["Authorization"])
 security = HTTPBearer()
@@ -99,15 +105,28 @@ async def login(
             detail="User not found / invalid email",
         )
     if not auth_service.verify_password(body.password, user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password"
-        )
+            client_ip = request.client.host
+            auth_attempts[client_ip].append(datetime.now())
+           
+            if client_ip in blocked_ips and blocked_ips[client_ip] > datetime.now():
+                print(f"IP-адрес {client_ip} заблокирован")
+                raise HTTPException(status_code=429, detail="IP-адрес заблокирован")
+
+            
+            if len(auth_attempts[client_ip]) >= 5 and auth_attempts[client_ip][-1] - auth_attempts[client_ip][0] <= timedelta(minutes=15):
+                
+                blocked_ips[client_ip] = datetime.now() + timedelta(minutes=15)
+                print(f"Слишком много попыток авторизации, IP-адрес {client_ip} заблокирован на 15 минут")
+                raise HTTPException(status_code=429, detail="Слишком много попыток авторизации, IP-адрес заблокирован на 15 минут")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password"
+            )
     access_token = await auth_service.create_access_token(
         data={"oid": user.id}, expires_delta=3600
     )
     refresh_token = await auth_service.create_refresh_token(data={"oid": user.id})
     await repository_users.update_token(user, refresh_token, db)
-    logger.debug(f"{user.email}  login success")
+    logger.info("login success")
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,

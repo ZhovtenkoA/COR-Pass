@@ -22,6 +22,8 @@ from cor_pass.config.config import settings
 from cor_pass.services.logger import logger
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from collections import defaultdict
+# from loguru import logger as loguru_logger
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="cor_pass/static"), name="static")
@@ -81,6 +83,7 @@ def read_config():
 
 @app.get("/", name="Корень")
 def read_root(request: Request):
+    logger.info("This is a test log message")
     REQUEST_COUNT.inc()
     with REQUEST_LATENCY.time():
         return FileResponse("cor_pass/static/login.html")
@@ -166,6 +169,48 @@ async def startup():
 
 # if settings.app_env == "production":
 #     app.middleware("http")(verify_request_signature)
+
+from datetime import datetime, timedelta
+
+auth_attempts = defaultdict(list)
+blocked_ips = {}
+
+@app.middleware("http")
+async def auth_attempt_middleware(request: Request, call_next):
+    # Получите IP-адрес клиента
+    client_ip = request.client.host
+    print(client_ip)
+
+    try:
+        # Выполните авторизацию
+        response = await call_next(request)
+    except HTTPException as e:
+        if e.status_code == 401:  # Неудачная авторизация
+            # Добавьте попытку авторизации в словарь
+            auth_attempts[client_ip].append(datetime.now())
+            print(client_ip)
+            print("client_ip")
+            # Проверьте, не заблокирован ли этот IP-адрес
+            if client_ip in blocked_ips and blocked_ips[client_ip] > datetime.now():
+                raise HTTPException(status_code=429, detail="IP-адрес заблокирован")
+
+            # Проверьте, если было 5 неудачных попыток за последние 15 минут
+            if len(auth_attempts[client_ip]) >= 5 and auth_attempts[client_ip][-1] - auth_attempts[client_ip][0] <= timedelta(minutes=15):
+                # Заблокируйте IP-адрес на 15 минут
+                blocked_ips[client_ip] = datetime.now() + timedelta(minutes=15)
+                raise HTTPException(status_code=429, detail="Слишком много попыток авторизации, IP-адрес заблокирован на 15 минут")
+
+        # Если произошло что-то другое, просто вернем исключение
+        raise e
+
+    return response
+
+
+
+
+
+
+
 
 
 app.include_router(auth.router, prefix="/api")
