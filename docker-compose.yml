@@ -24,9 +24,31 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - prometheus
+      - loki
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    user: "0:0" 
     volumes:
-      - grafana-storage:/var/lib/grafana
+      - ./loki-config.yaml:/etc/loki/loki-config.yaml
+      - ./:/app
+      - loki-data:/wal
+      - compactor-data:/tmp/loki/compactor
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/log:/var/log
+      - ./:/app
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+    command: -config.file=/etc/promtail/config.yaml
+    depends_on:
+      - loki
 
 volumes:
   grafana-storage:
+  loki-data:
+  compactor-data:
