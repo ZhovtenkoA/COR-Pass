@@ -218,6 +218,16 @@ async def change_user_email(email: str, current_user, db: Session) -> None:
     except Exception as e:
         db.rollback()
         raise e
+    
+    
+async def add_user_backup_email(email, current_user: User, db: Session) -> None:
+    current_user.backup_email = email
+    try:
+        db.commit()
+        logger.debug("Backup email has added")
+    except Exception as e:
+        db.rollback()
+        raise e
 
 
 async def get_settings(user: User, db: Session):

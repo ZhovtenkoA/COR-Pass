@@ -8,7 +8,7 @@ from datetime import timedelta, datetime, timezone
 from sqlalchemy.orm import Session
 
 from cor_pass.database.db import get_db
-from cor_pass.repository import users as repository_users
+from cor_pass.repository import person as repository_users
 from cor_pass.config.config import settings
 from cor_pass.services.logger import logger
 

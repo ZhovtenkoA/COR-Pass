@@ -14,10 +14,9 @@ from prometheus_client import Counter, Histogram
 from prometheus_client import generate_latest
 from starlette.responses import Response
 
-from cor_pass.routes import auth
+from cor_pass.routes import auth, person
 from cor_pass.database.db import get_db
-from cor_pass.routes import auth, records, tags, password_generator, users, cor_id, otp_auth
-from cor_pass.repository import users as repo_users
+from cor_pass.routes import auth, records, tags, password_generator, cor_id, otp_auth, admin
 from cor_pass.config.config import settings
 from cor_pass.services.logger import logger
 from fastapi.exceptions import RequestValidationError
@@ -214,10 +213,11 @@ async def auth_attempt_middleware(request: Request, call_next):
 
 
 app.include_router(auth.router, prefix="/api")
+app.include_router(admin.router, prefix="/api")
 app.include_router(records.router, prefix="/api")
 app.include_router(tags.router, prefix="/api")
 app.include_router(password_generator.router, prefix="/api")
-app.include_router(users.router, prefix="/api")
+app.include_router(person.router, prefix="/api")
 app.include_router(cor_id.router, prefix="/api")
 app.include_router(otp_auth.router, prefix="/api")
 
