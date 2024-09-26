@@ -9,13 +9,39 @@ from cor_pass.services.recovery_file import generate_recovery_file
 from cor_pass.database.models import User, Status
 from cor_pass.services.access import user_access
 from cor_pass.services.logger import logger
-from cor_pass.schemas import UserDb, PasswordStorageSettings, MedicalStorageSettings, EmailSchema, ChangePasswordModel
+from cor_pass.schemas import UserDb, PasswordStorageSettings, MedicalStorageSettings, EmailSchema, ChangePasswordModel, ResponseCorIdModel
 from cor_pass.repository import person
+from cor_pass.repository import  cor_id as repository_cor_id
 from pydantic import EmailStr
 from io import BytesIO
 from fastapi.responses import StreamingResponse
 
 router = APIRouter(prefix="/user", tags=["User"])
+
+
+
+@router.get(
+    "/my_core_id",
+    response_model=ResponseCorIdModel,
+    dependencies=[Depends(user_access)],
+)
+async def read_cor_id(
+    user: User = Depends(auth_service.get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    **Просмотр своего COR-id** \n
+
+    """
+
+    cor_id = await repository_cor_id.get_cor_id(user, db)
+    if cor_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="COR-Id not found"
+        )
+    return cor_id
+
+
 
 
 

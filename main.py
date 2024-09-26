@@ -9,7 +9,6 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 import hashlib
 import hmac
-from prometheus_client import start_http_server, Summary
 from prometheus_client import Counter, Histogram
 from prometheus_client import generate_latest
 from starlette.responses import Response
@@ -22,7 +21,11 @@ from cor_pass.services.logger import logger
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from collections import defaultdict
-# from loguru import logger as loguru_logger
+
+
+from datetime import datetime, timedelta
+
+
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="cor_pass/static"), name="static")
@@ -86,7 +89,7 @@ def read_root(request: Request):
     REQUEST_COUNT.inc()
     with REQUEST_LATENCY.time():
         return FileResponse("cor_pass/static/login.html")
-    # return "welcome"
+
 
 
 @app.get("/api/healthchecker")
@@ -108,48 +111,6 @@ def healthchecker(db: Session = Depends(get_db)):
         )
 
 
-# Middleware для проверки подписи
-@app.middleware("http")
-async def verify_request_signature(request: Request, call_next):
-    if settings.signing_key_verification:
-        try:
-            signature = request.headers.get("X-Signature")
-            if signature is None:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing signature"
-                )
-
-            body = await request.body()
-            body_str = body.decode()
-
-            if not verify_signature(body_str, signature):
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid signature"
-                )
-
-            return await call_next(request)
-        except HTTPException as exc:
-            return JSONResponse(
-                status_code=exc.status_code, content={"detail": exc.detail}
-            )
-    else:
-        return await call_next(request)
-
-
-def verify_signature(body: str, signature: str) -> bool:
-    computed_signature = hmac.new(
-        settings.signing_key, body.encode(), hashlib.sha256
-    ).hexdigest()
-    return hmac.compare_digest(
-        computed_signature.encode("utf-8"), signature.encode("utf-8")
-    )
-
-
-# def create_signature(signing_key: str, body: str) -> str:
-#     signature = hmac.new(settings.signing_key.encode(), body.encode(), hashlib.sha256).hexdigest()
-#     return signature
-
-
 # Middleware для добавления заголовка времени обработки
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
@@ -166,10 +127,7 @@ async def startup():
     print("------------- STARTUP --------------")
 
 
-# if settings.app_env == "production":
-#     app.middleware("http")(verify_request_signature)
 
-from datetime import datetime, timedelta
 
 auth_attempts = defaultdict(list)
 blocked_ips = {}
