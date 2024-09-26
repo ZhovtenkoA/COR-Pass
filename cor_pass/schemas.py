@@ -8,8 +8,16 @@ from cor_pass.database.models import Status
 
 
 class UserModel(BaseModel):
-    email: str
-    password: str = Field(min_length=6, max_length=20)
+    email: EmailStr
+    password: str = Field(min_length=6, max_length=20)    
+    birth: Optional[int] = Field( ge=1945, le=2100)
+    user_sex: Optional[str] = Field(max_length=1)
+
+    @field_validator("user_sex")
+    def user_sex_must_be_m_or_f(cls, v):
+        if v not in ["M", "F"]:
+            raise ValueError('user_sex must be "M" or "F"')
+        return v
 
 
 class UserDb(BaseModel):

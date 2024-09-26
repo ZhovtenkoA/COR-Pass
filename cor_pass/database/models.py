@@ -45,8 +45,8 @@ class User(Base):
     unique_cipher_key = Column(
         String(250), nullable=False
     )  # уникальный ключ шифрования конкретного пользователя, в базе в зашифрованном виде, шифруется с помошью AES key переменной окружения
-    sex = Column(String(10), nullable=True)
-    birth = Column(Integer, nullable=True)
+    user_sex = Column(String(10), nullable=False)
+    birth = Column(Integer, nullable=False)
 
     user_records = relationship("Record", back_populates="user")
     user_settings = relationship("UserSettings", back_populates="user")
