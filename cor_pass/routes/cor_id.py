@@ -12,12 +12,18 @@ from cor_pass.repository import cor_id as repository_cor_id
 router = APIRouter(prefix="/medical/cor_id", tags=["Cor-Id"])
 
 
-@router.get(
-    "/my_core_id",
-    response_model=ResponseCorIdModel,
+
+
+
+
+
+@router.post(
+    "/show_corid_info",
+    # response_model=ResponseCorIdModel,
     dependencies=[Depends(user_access)],
 )
 async def read_cor_id(
+    cor_id: ResponseCorIdModel,
     user: User = Depends(auth_service.get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -25,8 +31,8 @@ async def read_cor_id(
     **Просмотр своего COR-id** \n
 
     """
-
-    cor_id = await repository_cor_id.get_cor_id(user, db)
+    if cor_id:
+        cor_id = repository_cor_id.display_corid_info(cor_id.cor_id)
     if cor_id is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="COR-Id not found"
@@ -40,8 +46,8 @@ async def read_cor_id(
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(user_access)],
 )
-async def create_cor_id(
-    body: CreateCorIdModel,
+async def create_cor_id(n_patient,
+    # body: CreateCorIdModel,
     user: User = Depends(auth_service.get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -49,9 +55,11 @@ async def create_cor_id(
     **Создание COR-id** \n
 
     """
-
+    birth_year_gender = f"{user.birth}{user.user_sex}"
+    print(birth_year_gender)
     if not user.cor_id:
-        cor_id = await repository_cor_id.create_cor_id(body, db, user)
+        cor_id = await repository_cor_id.create_corid(n_patient, birth_year_gender)
+        print(cor_id)
         return cor_id
     else:
         return {"message": "cor-id already exist", "cor_id": user.cor_id}

@@ -8,65 +8,41 @@ from cor_pass.services.qr_code import generate_qr_code
 from cor_pass.services.recovery_file import generate_recovery_file
 from cor_pass.database.models import User, Status
 from cor_pass.services.access import user_access
-from cor_pass.schemas import UserDb, PasswordStorageSettings, MedicalStorageSettings
-from cor_pass.repository import users
+from cor_pass.services.logger import logger
+from cor_pass.schemas import UserDb, PasswordStorageSettings, MedicalStorageSettings, EmailSchema, ChangePasswordModel, ResponseCorIdModel
+from cor_pass.repository import person
+from cor_pass.repository import  cor_id as repository_cor_id
 from pydantic import EmailStr
 from io import BytesIO
 from fastapi.responses import StreamingResponse
 
-router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter(prefix="/user", tags=["User"])
 
 
-@router.get("/get_all", response_model=list[UserDb])
-async def get_all_users(
-    skip: int = 0,
-    limit: int = 10,
+
+@router.get(
+    "/my_core_id",
+    response_model=ResponseCorIdModel,
+    dependencies=[Depends(user_access)],
+)
+async def read_cor_id(
     user: User = Depends(auth_service.get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    **Get a list of users. / Получение списка всех пользователей**\n
-    This route allows to get a list of pagination-aware users.
-    Level of Access:
-    - Current authorized user
-    :param skip: int: Number of users to skip.
-    :param limit: int: Maximum number of users to return.
-    :param current_user: User: Current authenticated user.
-    :param db: Session: Database session.
-    :return: List of users.
-    :rtype: List[UserDb]
+    **Просмотр своего COR-id** \n
+
     """
-    list_users = await users.get_users(skip, limit, db)
-    return list_users
+
+    cor_id = await repository_cor_id.get_cor_id(user, db)
+    if cor_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="COR-Id not found"
+        )
+    return cor_id
 
 
-@router.patch("/asign_status/{account_status}", dependencies=[Depends(user_access)])
-async def assign_status(
-    email: EmailStr, account_status: Status, db: Session = Depends(get_db)
-):
-    """
-    **Assign a account_status to a user by email. / Применение нового статуса аккаунта пользователя**\n
 
-    This route allows to assign the selected account_status to a user by their email.
-
-    :param email: EmailStr: Email of the user to whom you want to assign the status.
-
-    :param account_status: Status: The selected account_status for the assignment (Premium, Basic).
-
-    :param db: Session: Database Session.
-
-    :return: Message about successful status change.
-
-    :rtype: dict
-    """
-    user = await users.get_user_by_email(email, db)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-    if account_status == user.account_status:
-        return {"message": "The acount status has already been assigned"}
-    else:
-        await users.make_user_status(email, account_status, db)
-        return {"message": f"{email} - {account_status.value}"}
 
 
 @router.get("/account_status", dependencies=[Depends(user_access)])
@@ -75,11 +51,11 @@ async def get_status(email: EmailStr, db: Session = Depends(get_db)):
     **Получение статуса/уровня аккаунта пользователя**\n
     """
 
-    user = await users.get_user_by_email(email, db)
+    user = await person.get_user_by_email(email, db)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
     else:
-        account_status = await users.get_user_status(email, db)
+        account_status = await person.get_user_status(email, db)
         return {"message": f"{email} - {account_status.value}"}
 
 
@@ -94,7 +70,7 @@ async def get_user_settings(
     - Current authorized user
     """
 
-    settings = await users.get_settings(user, db)
+    settings = await person.get_settings(user, db)
     return {
         "local_password_storage": settings.local_password_storage,
         "cloud_password_storage": settings.cloud_password_storage,
@@ -114,7 +90,7 @@ async def choose_password_storage(
     Level of Access:
     - Current authorized user
     """
-    await users.change_password_storage_settings(user, settings, db)
+    await person.change_password_storage_settings(user, settings, db)
     return {
         "message": "Password storage settings are changed",
         "local_password_storage": settings.local_password_storage,
@@ -133,7 +109,7 @@ async def choose_medical_storage(
     Level of Access:
     - Current authorized user
     """
-    await users.change_medical_storage_settings(user, settings, db)
+    await person.change_medical_storage_settings(user, settings, db)
     return {
         "message": "Medical storage settings are changed",
         "local_medical_storage": settings.local_medical_storage,
@@ -154,6 +130,92 @@ async def get_user_email(
 
     email = user.email
     return {"users email": email}
+
+
+@router.patch("/change_email")
+async def change_email(
+    email: str,
+    current_user: User = Depends(auth_service.get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    **Смена имейла авторизированного пользователя** \n
+
+    """
+    user = await person.get_user_by_email(current_user.email, db)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+    else:
+        if email:
+            await person.change_user_email(email, user, db)
+            logger.debug(f"{current_user.id} - changed his email to {email}")
+            return {"message": f"User '{current_user.id}' changed his email to {email}"}
+        else:
+            print("Incorrect email input")
+            raise HTTPException(
+                status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                detail="Incorrect email input",
+            )
+
+
+
+@router.post("/add_backup_email")
+async def add_backup_email(
+    email: EmailSchema,
+    current_user: User = Depends(auth_service.get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    **Добавление резервного имейла** \n
+
+    """
+    user = await person.get_user_by_email(current_user.email, db)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+    else:
+        if email:
+            await person.add_user_backup_email(email.email, user, db)
+            logger.debug(f"{current_user.id} - add his backup email")
+            return {"message": f"{current_user.id} - add his backup email"}
+        else:
+            print("Incorrect email input")
+            raise HTTPException(
+                status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                detail="Incorrect email input",
+            )
+
+
+
+@router.patch("/change_password")
+async def change_password(body: ChangePasswordModel, db: Session = Depends(get_db)):
+    """
+    **Смена пароля** \n
+
+    """
+
+    user = await person.get_user_by_email(body.email, db)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+    else:
+        if body.password:
+            await person.change_user_password(body.email, body.password, db)
+            logger.debug(f"{body.email} - changed his password")
+            return {"message": f"User '{body.email}' changed his password"}
+        else:
+            print("Incorrect password input")
+            raise HTTPException(
+                status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                detail="Incorrect password input",
+            )
+
+
+
 
 
 @router.get("/get_recovery_code")
