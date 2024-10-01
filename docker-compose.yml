@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: massivecapybara/corid_api:latest
     ports:
       - "8000:8000"
     volumes:
