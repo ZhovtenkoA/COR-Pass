@@ -23,7 +23,7 @@ async def read_cor_id(
     db: Session = Depends(get_db),
 ):
     """
-    **Просмотр своего COR-id** \n
+    **Расшифровка COR-id** \n
 
     """
     if cor_id:
@@ -34,27 +34,3 @@ async def read_cor_id(
         )
     return cor_id
 
-
-@router.post(
-    "/create",
-    # response_model=ResponseCorIdModel,
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(user_access)],
-)
-async def create_cor_id(
-    n_patient,
-    # body: CreateCorIdModel,
-    user: User = Depends(auth_service.get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    **Создание COR-id** \n
-
-    """
-    birth_year_gender = f"{user.birth}{user.user_sex}"
-    if not user.cor_id:
-        cor_id = await repository_cor_id.create_corid(n_patient, birth_year_gender)
-        print(cor_id)
-        return cor_id
-    else:
-        return {"message": "cor-id already exist", "cor_id": user.cor_id}
