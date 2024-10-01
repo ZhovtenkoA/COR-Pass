@@ -76,14 +76,23 @@ def display_corid_info(corid):
     }
 
 
-async def create_corid(n_patient, birth_year_gender):
+async def create_corid(user: User, db: Session):
+    birth_year_gender = f"{user.birth}{user.user_sex}"
+    n_patient = user.user_index
     today = datetime.now().date()
     jan_first_2024 = datetime(2024, 1, 1).date()
     n_days_since_first_jan_2024 = (today - jan_first_2024).days
     n_days_str = transform_integer(n_days_since_first_jan_2024)
     n_facility_str = transform_integer(n_facility)
     n_patient_str = transform_integer(int(n_patient))
-    return to_base36(n_days_str, n_facility_str, n_patient_str) + "-" + birth_year_gender
+    cor_id = to_base36(n_days_str, n_facility_str, n_patient_str) + "-" + birth_year_gender
+    user.cor_id = cor_id
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise e
+
 
 
 

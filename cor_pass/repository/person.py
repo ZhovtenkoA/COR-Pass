@@ -1,4 +1,6 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.future import select
+from sqlalchemy import func
 import uuid
 
 from cor_pass.database.models import User, Status, Verification, UserSettings
@@ -56,7 +58,8 @@ async def create_user(body: UserModel, db: Session) -> User:
     new_user.id = str(uuid.uuid4())
 
     user_settings = UserSettings(user_id=new_user.id)
-
+    max_index = await get_max_user_index(db)
+    new_user.user_index=(max_index + 1) if max_index is not None else 1
     new_user.account_status = Status.basic
     new_user.unique_cipher_key = await generate_aes_key()  # ->bytes
     new_user.recovery_code = await generate_recovery_code()
@@ -247,6 +250,20 @@ async def get_settings(user: User, db: Session):
             db.rollback()
             raise e
     return user_settings
+
+
+async def get_max_user_index(db: Session):
+    try:
+        result = db.execute(select(func.max(User.user_index)))
+        max_index = result.scalar()  
+        if max_index is None:
+            logger.debug("No users found in the database.")
+            return None  
+        return max_index  
+    except Exception as e:
+        logger.error(f"Failed to get max user_index: {e}")
+        db.rollback()  
+        raise e 
 
 
 async def change_password_storage_settings(

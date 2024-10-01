@@ -56,7 +56,6 @@ async def create_cor_id(n_patient,
 
     """
     birth_year_gender = f"{user.birth}{user.user_sex}"
-    print(birth_year_gender)
     if not user.cor_id:
         cor_id = await repository_cor_id.create_corid(n_patient, birth_year_gender)
         print(cor_id)

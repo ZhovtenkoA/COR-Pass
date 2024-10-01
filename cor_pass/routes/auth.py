@@ -30,6 +30,7 @@ from cor_pass.schemas import (
 )
 from cor_pass.database.models import User
 from cor_pass.repository import person as repository_person
+from cor_pass.repository import cor_id as repository_cor_id
 from cor_pass.services.auth import auth_service
 from cor_pass.services.email import (
     send_email_code,
@@ -78,6 +79,8 @@ async def signup(
         )
     body.password = auth_service.get_password_hash(body.password)
     new_user = await repository_person.create_user(body, db)
+    if not new_user.cor_id:
+        await repository_cor_id.create_corid(new_user, db)
     logger.debug(f"{body.email} user successfully created")
     return {"user": new_user, "detail": "User successfully created"}
 
