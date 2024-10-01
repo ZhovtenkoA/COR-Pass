@@ -39,6 +39,17 @@ async def get_user_by_uuid(uuid: str, db: Session) -> User | None:
     """
     return db.query(User).filter(User.id == uuid).first()
 
+async def get_user_by_corid(cor_id: str, db: Session) -> User | None:
+    """
+    The get_user_by_corid function takes in an corid and a database session,
+    then returns the user with that corid.
+
+    :param corid: str: Pass in the corid of the user that we want to get
+    :param db: Session: Pass the database session to the function
+    :return: The first user found with the corid specified
+    """
+    return db.query(User).filter(User.cor_id == cor_id).first()
+
 
 async def create_user(body: UserModel, db: Session) -> User:
     """
