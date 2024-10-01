@@ -125,9 +125,9 @@ async def login(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password"
             )
     access_token = await auth_service.create_access_token(
-        data={"oid": user.id}, expires_delta=3600
+        data={"oid": user.cor_id}, expires_delta=3600
     )
-    refresh_token = await auth_service.create_refresh_token(data={"oid": user.id})
+    refresh_token = await auth_service.create_refresh_token(data={"oid": user.cor_id})
     await repository_person.update_token(user, refresh_token, db)
     logger.info("login success")
     return {
@@ -155,16 +155,18 @@ async def refresh_token(
     :return: A new access token and a new refresh token
     """
     token = credentials.credentials
-    id = await auth_service.decode_refresh_token(token)
-    user = await repository_person.get_user_by_uuid(id, db)
+    # id = await auth_service.decode_refresh_token(token)
+    # user = await repository_person.get_user_by_uuid(id, db)
+    cor_id = await auth_service.decode_refresh_token(token)
+    user = await repository_person.get_user_by_corid(cor_id, db)
     if user.refresh_token != token:
         await repository_person.update_token(user, None, db)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
         )
 
-    access_token = await auth_service.create_access_token(data={"oid": user.id})
-    refresh_token = await auth_service.create_refresh_token(data={"oid": user.id})
+    access_token = await auth_service.create_access_token(data={"oid": user.cor_id})
+    refresh_token = await auth_service.create_refresh_token(data={"oid": user.cor_id})
     user.refresh_token = refresh_token
     db.commit()
     await repository_person.update_token(user, refresh_token, db)
@@ -314,9 +316,9 @@ async def restore_account_by_text(
             data=user.recovery_code, key=await decrypt_user_key(user.unique_cipher_key)
         )
         access_token = await auth_service.create_access_token(
-        data={"oid": user.id}, expires_delta=3600
+        data={"oid": user.cor_id}, expires_delta=3600
     )
-        refresh_token = await auth_service.create_refresh_token(data={"oid": user.id})
+        refresh_token = await auth_service.create_refresh_token(data={"oid": user.cor_id})
         await repository_person.update_token(user, refresh_token, db)
         logger.debug(f"{user.email}  login success")
         return {
@@ -364,9 +366,9 @@ async def upload_recovery_file(
             data=user.recovery_code, key=await decrypt_user_key(user.unique_cipher_key)
         )
         access_token = await auth_service.create_access_token(
-        data={"oid": user.id}, expires_delta=3600
+        data={"oid": user.cor_id}, expires_delta=3600
     )
-        refresh_token = await auth_service.create_refresh_token(data={"oid": user.id})
+        refresh_token = await auth_service.create_refresh_token(data={"oid": user.cor_id})
         await repository_person.update_token(user, refresh_token, db)
         logger.debug(f"{user.email}  login success")
         return {
