@@ -28,7 +28,7 @@ router = APIRouter(prefix="/user", tags=["User"])
 
 @router.get(
     "/my_core_id",
-    response_model=ResponseCorIdModel,
+    # response_model=ResponseCorIdModel,
     dependencies=[Depends(user_access)],
 )
 async def read_cor_id(
