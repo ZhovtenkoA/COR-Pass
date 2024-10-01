@@ -15,7 +15,7 @@ async def get_cor_id(user: User, db: Session):
         return cor_id
     else:
         return None
-    
+
 
 """
 Алгоритм Андрея
@@ -30,6 +30,7 @@ def transform_integer(n):
         raise ValueError("Number must be between 1 and 99999 inclusive.")
     return f"{n:05d}"
 
+
 def to_base36(n_days, n_facility, n_patient):
     num = int(f"{n_days}{n_facility}{n_patient}")
     chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -37,12 +38,12 @@ def to_base36(n_days, n_facility, n_patient):
     while num > 0:
         num, remainder = divmod(num, 36)
         result.append(chars[remainder])
-    return ''.join(reversed(result))
+    return "".join(reversed(result))
 
 
 def display_corid_info(corid):
     try:
-        base36_str, suffix = corid.split('-')
+        base36_str, suffix = corid.split("-")
     except ValueError:
         raise ValueError("Cor-ID format is invalid. Expected a '-'.")
 
@@ -59,7 +60,7 @@ def display_corid_info(corid):
 
     n_patient = n_str[-5:]
     n_facility = n_str[-10:-5]
-    n_days = n_str[:-10] or '0'
+    n_days = n_str[:-10] or "0"
 
     try:
         birth_year = int(suffix[:-1])
@@ -72,7 +73,7 @@ def display_corid_info(corid):
         "n_facility": int(n_facility),
         "n_patient": int(n_patient),
         "birth_year": birth_year,
-        "sex": sex
+        "sex": sex,
     }
 
 
@@ -85,14 +86,12 @@ async def create_corid(user: User, db: Session):
     n_days_str = transform_integer(n_days_since_first_jan_2024)
     n_facility_str = transform_integer(n_facility)
     n_patient_str = transform_integer(int(n_patient))
-    cor_id = to_base36(n_days_str, n_facility_str, n_patient_str) + "-" + birth_year_gender
+    cor_id = (
+        to_base36(n_days_str, n_facility_str, n_patient_str) + "-" + birth_year_gender
+    )
     user.cor_id = cor_id
     try:
         db.commit()
     except Exception as e:
         db.rollback()
         raise e
-
-
-
-

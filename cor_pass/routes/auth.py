@@ -108,22 +108,28 @@ async def login(
             detail="User not found / invalid email",
         )
     if not auth_service.verify_password(body.password, user.password):
-            client_ip = request.client.host
-            auth_attempts[client_ip].append(datetime.now())
-           
-            if client_ip in blocked_ips and blocked_ips[client_ip] > datetime.now():
-                print(f"IP-адрес {client_ip} заблокирован")
-                raise HTTPException(status_code=429, detail="IP-адрес заблокирован")
+        client_ip = request.client.host
+        auth_attempts[client_ip].append(datetime.now())
 
-            
-            if len(auth_attempts[client_ip]) >= 5 and auth_attempts[client_ip][-1] - auth_attempts[client_ip][0] <= timedelta(minutes=15):
-                
-                blocked_ips[client_ip] = datetime.now() + timedelta(minutes=15)
-                print(f"Слишком много попыток авторизации, IP-адрес {client_ip} заблокирован на 15 минут")
-                raise HTTPException(status_code=429, detail="Слишком много попыток авторизации, IP-адрес заблокирован на 15 минут")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password"
+        if client_ip in blocked_ips and blocked_ips[client_ip] > datetime.now():
+            print(f"IP-адрес {client_ip} заблокирован")
+            raise HTTPException(status_code=429, detail="IP-адрес заблокирован")
+
+        if len(auth_attempts[client_ip]) >= 5 and auth_attempts[client_ip][
+            -1
+        ] - auth_attempts[client_ip][0] <= timedelta(minutes=15):
+
+            blocked_ips[client_ip] = datetime.now() + timedelta(minutes=15)
+            print(
+                f"Слишком много попыток авторизации, IP-адрес {client_ip} заблокирован на 15 минут"
             )
+            raise HTTPException(
+                status_code=429,
+                detail="Слишком много попыток авторизации, IP-адрес заблокирован на 15 минут",
+            )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password"
+        )
     access_token = await auth_service.create_access_token(
         data={"oid": user.cor_id}, expires_delta=3600
     )
@@ -270,19 +276,6 @@ async def forgot_password_send_verification_code(
     return {"message": "Check your email for verification code."}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 @router.post("/restore_account_by_text")
 async def restore_account_by_text(
     body: RecoveryCodeModel, db: Session = Depends(get_db)
@@ -312,13 +305,15 @@ async def restore_account_by_text(
         #     "message": "Recovery code is correct",  # Сообщение для JS о том что код востановления верный
         #     "confirmation": confirmation,
         # }
-        user.recovery_code=await encrypt_data(
+        user.recovery_code = await encrypt_data(
             data=user.recovery_code, key=await decrypt_user_key(user.unique_cipher_key)
         )
         access_token = await auth_service.create_access_token(
-        data={"oid": user.cor_id}, expires_delta=3600
-    )
-        refresh_token = await auth_service.create_refresh_token(data={"oid": user.cor_id})
+            data={"oid": user.cor_id}, expires_delta=3600
+        )
+        refresh_token = await auth_service.create_refresh_token(
+            data={"oid": user.cor_id}
+        )
         await repository_person.update_token(user, refresh_token, db)
         logger.debug(f"{user.email}  login success")
         return {
@@ -348,8 +343,6 @@ async def upload_recovery_file(
     confirmation = False
     file_content = await file.read()
 
-    
-
     recovery_code = await decrypt_data(
         encrypted_data=user.recovery_code,
         key=await decrypt_user_key(user.unique_cipher_key),
@@ -362,13 +355,15 @@ async def upload_recovery_file(
         #     "message": "Recovery file is correct",  # Сообщение для JS о том что файл востановления верный
         #     "confirmation": confirmation,
         # }
-        recovery_code=await encrypt_data(
+        recovery_code = await encrypt_data(
             data=user.recovery_code, key=await decrypt_user_key(user.unique_cipher_key)
         )
         access_token = await auth_service.create_access_token(
-        data={"oid": user.cor_id}, expires_delta=3600
-    )
-        refresh_token = await auth_service.create_refresh_token(data={"oid": user.cor_id})
+            data={"oid": user.cor_id}, expires_delta=3600
+        )
+        refresh_token = await auth_service.create_refresh_token(
+            data={"oid": user.cor_id}
+        )
         await repository_person.update_token(user, refresh_token, db)
         logger.debug(f"{user.email}  login success")
         return {
@@ -383,6 +378,3 @@ async def upload_recovery_file(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid recovery code"
         )
-
-
-

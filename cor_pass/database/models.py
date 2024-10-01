@@ -47,7 +47,9 @@ class User(Base):
     )  # уникальный ключ шифрования конкретного пользователя, в базе в зашифрованном виде, шифруется с помошью AES key переменной окружения
     user_sex = Column(String(10), nullable=False)
     birth = Column(Integer, nullable=False)
-    user_index = Column(Integer, unique=True) #индекс пользователя, используется в создании cor_id
+    user_index = Column(
+        Integer, unique=True
+    )  # индекс пользователя, используется в создании cor_id
 
     user_records = relationship("Record", back_populates="user")
     user_settings = relationship("UserSettings", back_populates="user")
@@ -122,8 +124,7 @@ class OTP(Base):
         DateTime, nullable=False, default=func.now(), onupdate=func.now()
     )
 
-
     user = relationship("User", back_populates="user_otp")
-    
+
 
 Base.metadata.create_all(bind=engine)

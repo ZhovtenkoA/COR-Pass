@@ -12,11 +12,6 @@ from cor_pass.repository import cor_id as repository_cor_id
 router = APIRouter(prefix="/medical/cor_id", tags=["Cor-Id"])
 
 
-
-
-
-
-
 @router.post(
     "/show_corid_info",
     # response_model=ResponseCorIdModel,
@@ -46,7 +41,8 @@ async def read_cor_id(
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(user_access)],
 )
-async def create_cor_id(n_patient,
+async def create_cor_id(
+    n_patient,
     # body: CreateCorIdModel,
     user: User = Depends(auth_service.get_current_user),
     db: Session = Depends(get_db),

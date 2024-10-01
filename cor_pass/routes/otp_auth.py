@@ -5,7 +5,11 @@ from typing import List
 from cor_pass.repository import records as repository_record
 from cor_pass.repository import otp_auth as repository_otp_auth
 from cor_pass.database.db import get_db
-from cor_pass.schemas import CreateOTPRecordModel, OTPRecordResponse, UpdateOTPRecordModel
+from cor_pass.schemas import (
+    CreateOTPRecordModel,
+    OTPRecordResponse,
+    UpdateOTPRecordModel,
+)
 from cor_pass.database.models import User
 from cor_pass.config.config import settings
 from cor_pass.services.auth import auth_service
@@ -16,9 +20,6 @@ from cor_pass.services import cor_otp
 
 router = APIRouter(prefix="/otp_auth", tags=["OTP-Authentication"])
 encryption_key = settings.encryption_key
-
-
-
 
 
 @router.get(
@@ -43,13 +44,17 @@ async def read_otp_records(
     :rtype: List[OTPRecordResponse]
     """
     try:
-        otp_records = await repository_otp_auth.get_all_user_otp_records(db, user.id, skip, limit)
+        otp_records = await repository_otp_auth.get_all_user_otp_records(
+            db, user.id, skip, limit
+        )
     except Exception as e:
         logger.error(f"Database query failed: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
     otp_records_with_codes = []
     for record in otp_records:
-        otp_password, remaining_time = cor_otp.generate_and_verify_otp(record.private_key)
+        otp_password, remaining_time = cor_otp.generate_and_verify_otp(
+            record.private_key
+        )
         otp_record_response = OTPRecordResponse(
             record_id=record.record_id,
             record_name=record.record_name,
@@ -62,12 +67,10 @@ async def read_otp_records(
     return otp_records_with_codes
 
 
-
-
-
-
 @router.get(
-    "/{otp_record_id}", response_model=OTPRecordResponse, dependencies=[Depends(user_access)]
+    "/{otp_record_id}",
+    response_model=OTPRecordResponse,
+    dependencies=[Depends(user_access)],
 )
 async def read_otp_record(
     otp_record_id: int,
@@ -90,7 +93,9 @@ async def read_otp_record(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Record not found"
         )
-    otp_password, remaining_time = cor_otp.generate_and_verify_otp(otp_record.private_key)
+    otp_password, remaining_time = cor_otp.generate_and_verify_otp(
+        otp_record.private_key
+    )
 
     return OTPRecordResponse(
         record_id=otp_record.record_id,
@@ -99,10 +104,6 @@ async def read_otp_record(
         otp_password=otp_password,
         remaining_time=remaining_time,
     )
-
-
-
-
 
 
 @router.post(
@@ -127,7 +128,9 @@ async def create_otp_record(
     :rtype: OTPRecordResponse
     """
     otp_record = await repository_otp_auth.create_otp_record(body, db, user)
-    otp_password, remaining_time = cor_otp.generate_and_verify_otp(otp_record.private_key)
+    otp_password, remaining_time = cor_otp.generate_and_verify_otp(
+        otp_record.private_key
+    )
 
     return OTPRecordResponse(
         record_id=otp_record.record_id,
@@ -138,14 +141,15 @@ async def create_otp_record(
     )
 
 
-
 """
 Маршрут обновления otp записи
 """
 
 
 @router.put(
-    "/{otp_record_id}", response_model=OTPRecordResponse, dependencies=[Depends(user_access)]
+    "/{otp_record_id}",
+    response_model=OTPRecordResponse,
+    dependencies=[Depends(user_access)],
 )
 async def update_otp_record(
     otp_record_id: int,
@@ -166,12 +170,16 @@ async def update_otp_record(
     :rtype: OTPRecordResponse
     :raises HTTPException 404: If the record with the specified ID does not exist.
     """
-    otp_record = await repository_otp_auth.update_otp_record(otp_record_id, body, user, db)
+    otp_record = await repository_otp_auth.update_otp_record(
+        otp_record_id, body, user, db
+    )
     if otp_record is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Record not found"
         )
-    otp_password, remaining_time = cor_otp.generate_and_verify_otp(otp_record.private_key)
+    otp_password, remaining_time = cor_otp.generate_and_verify_otp(
+        otp_record.private_key
+    )
 
     return OTPRecordResponse(
         record_id=otp_record.record_id,
@@ -205,6 +213,3 @@ async def remove_otp_record(
             status_code=status.HTTP_404_NOT_FOUND, detail="Record not found"
         )
     return otp_record
-
-
-

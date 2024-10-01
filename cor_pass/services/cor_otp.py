@@ -11,4 +11,3 @@ def generate_and_verify_otp(secret: str):
     print(f"Generated OTP: {otp}")
 
     return otp, time_remaining
-

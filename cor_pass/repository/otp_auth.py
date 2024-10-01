@@ -10,9 +10,6 @@ from cor_pass.services.cipher import encrypt_data, decrypt_data, decrypt_user_ke
 import os
 
 
-
-
-
 async def create_otp_record(body: CreateOTPRecordModel, db: Session, user: User) -> OTP:
     if not user:
         raise Exception("User not found")
@@ -23,7 +20,7 @@ async def create_otp_record(body: CreateOTPRecordModel, db: Session, user: User)
         # private_key=await encrypt_data(
         #     data=body.private_key, key=await decrypt_user_key(user.unique_cipher_key)
         # ),
-        private_key=body.private_key
+        private_key=body.private_key,
     )
 
     db.add(new_record)
@@ -44,9 +41,7 @@ async def get_otp_record_by_id(user: User, db: Session, record_id: int):
 
 
 async def get_all_user_otp_records(db: Session, user_id: str, skip: int, limit: int):
-    records = (
-        db.query(OTP).filter_by(user_id=user_id).offset(skip).limit(limit).all()
-    )
+    records = db.query(OTP).filter_by(user_id=user_id).offset(skip).limit(limit).all()
     return records
 
 
@@ -65,9 +60,6 @@ async def update_otp_record(
         db.commit()
         db.refresh(record)
     return record
-
-
-
 
 
 async def delete_otp_record(user: User, db: Session, record_id: int):

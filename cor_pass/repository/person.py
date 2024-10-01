@@ -39,6 +39,7 @@ async def get_user_by_uuid(uuid: str, db: Session) -> User | None:
     """
     return db.query(User).filter(User.id == uuid).first()
 
+
 async def get_user_by_corid(cor_id: str, db: Session) -> User | None:
     """
     The get_user_by_corid function takes in an corid and a database session,
@@ -70,7 +71,7 @@ async def create_user(body: UserModel, db: Session) -> User:
 
     user_settings = UserSettings(user_id=new_user.id)
     max_index = await get_max_user_index(db)
-    new_user.user_index=(max_index + 1) if max_index is not None else 1
+    new_user.user_index = (max_index + 1) if max_index is not None else 1
     new_user.account_status = Status.basic
     new_user.unique_cipher_key = await generate_aes_key()  # ->bytes
     new_user.recovery_code = await generate_recovery_code()
@@ -111,7 +112,6 @@ async def update_token(user: User, token: str | None, db: Session) -> None:
     user.refresh_token = token
     db.commit()
     db.refresh(user)
-    
 
 
 async def get_users(skip: int, limit: int, db: Session) -> list[User]:
@@ -232,8 +232,8 @@ async def change_user_email(email: str, current_user, db: Session) -> None:
     except Exception as e:
         db.rollback()
         raise e
-    
-    
+
+
 async def add_user_backup_email(email, current_user: User, db: Session) -> None:
     current_user.backup_email = email
     try:
@@ -266,15 +266,15 @@ async def get_settings(user: User, db: Session):
 async def get_max_user_index(db: Session):
     try:
         result = db.execute(select(func.max(User.user_index)))
-        max_index = result.scalar()  
+        max_index = result.scalar()
         if max_index is None:
             logger.debug("No users found in the database.")
-            return None  
-        return max_index  
+            return None
+        return max_index
     except Exception as e:
         logger.error(f"Failed to get max user_index: {e}")
-        db.rollback()  
-        raise e 
+        db.rollback()
+        raise e
 
 
 async def change_password_storage_settings(
