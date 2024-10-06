@@ -51,9 +51,9 @@ class User(Base):
         Integer, unique=True
     )  # индекс пользователя, используется в создании cor_id
 
-    user_records = relationship("Record", back_populates="user")
-    user_settings = relationship("UserSettings", back_populates="user")
-    user_otp = relationship("OTP", back_populates="user")
+    user_records = relationship("Record", back_populates="user", cascade="all, delete-orphan")
+    user_settings = relationship("UserSettings", back_populates="user", cascade="all, delete-orphan")
+    user_otp = relationship("OTP", back_populates="user", cascade="all, delete-orphan")
 
 
 class Verification(Base):

@@ -14,6 +14,7 @@ from cor_pass.services.cipher import (
     encrypt_data,
 )
 from cor_pass.services.email import send_email_code_with_qr
+from sqlalchemy.exc import NoResultFound
 
 
 async def get_user_by_email(email: str, db: Session) -> User | None:
@@ -242,6 +243,18 @@ async def add_user_backup_email(email, current_user: User, db: Session) -> None:
     except Exception as e:
         db.rollback()
         raise e
+    
+
+async def delete_user_by_email(db: Session, email: str):
+    try:
+        user = db.query(User).filter(User.email == email).one()  
+        db.delete(user)  
+        db.commit()  
+    except NoResultFound:
+        print("Пользователь не найден.")
+    except Exception as e:
+        db.rollback()  
+        print(f"Произошла ошибка при удалении пользователя: {e}")
 
 
 async def get_settings(user: User, db: Session):

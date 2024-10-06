@@ -63,3 +63,20 @@ async def assign_status(
     else:
         await person.make_user_status(email, account_status, db)
         return {"message": f"{email} - {account_status.value}"}
+    
+
+@router.delete("/{email}", dependencies=[Depends(admin_access)])
+async def delete_user(
+    email: EmailStr, db: Session = Depends(get_db)
+):
+    """
+    **Delete user by email. / Удаление пользователя по имейлу**\n
+
+=
+    """
+    user = await person.get_user_by_email(email, db)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    else:
+        await person.delete_user_by_email(db=db, email=email)
+        return {"message": f" user {email} - was deleted"}
